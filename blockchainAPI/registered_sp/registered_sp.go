@@ -6,7 +6,7 @@ import (
 
 type RegisteredSp struct {
 	IsInMarketPlace  bool
-	Address          []byte
+	Address          string
 	SLALevel         int
 	PledgedStorage   uint64
 	RemainingStorage uint64
