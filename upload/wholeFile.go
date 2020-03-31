@@ -2,9 +2,9 @@ package upload
 
 import (
 	"fmt"
-	"github.com/itsmeknt/archoncloud-go/account"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/shards"
+	"github.com/archoncloud/archoncloud-go/account"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/shards"
 	"io"
 	"mime/multipart"
 	"os"

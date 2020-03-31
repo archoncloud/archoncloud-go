@@ -3,9 +3,9 @@ package upload
 import (
 	"bytes"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/itsmeknt/archoncloud-go/account"
-	"github.com/itsmeknt/archoncloud-go/blockchainAPI/ethereum/client_utils"
-	. "github.com/itsmeknt/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/account"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/client_utils"
+	. "github.com/archoncloud/archoncloud-go/common"
 	"testing"
 )
 

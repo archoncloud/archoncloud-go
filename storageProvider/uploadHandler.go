@@ -3,9 +3,9 @@ package storageProvider
 import (
 	"fmt"
 	"github.com/dustin/go-humanize"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/interfaces"
-	"github.com/itsmeknt/archoncloud-go/shards"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
+	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"

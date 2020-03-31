@@ -2,7 +2,7 @@ package download
 
 import (
 	"fmt"
-	. "github.com/itsmeknt/archoncloud-go/common"
+	. "github.com/archoncloud/archoncloud-go/common"
 	"time"
 )
 

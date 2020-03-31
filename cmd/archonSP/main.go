@@ -2,8 +2,8 @@
 package main
 
 import (
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/storageProvider"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/storageProvider"
 )
 
 func main() {

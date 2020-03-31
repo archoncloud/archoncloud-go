@@ -2,7 +2,7 @@ package storageProvider
 
 import (
 	"fmt"
-	. "github.com/itsmeknt/archoncloud-go/common"
+	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/pkg/errors"
 	"net/http"
 	"path"

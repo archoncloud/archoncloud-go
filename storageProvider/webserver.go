@@ -2,7 +2,7 @@ package storageProvider
 
 import (
 	"context"
-	. "github.com/itsmeknt/archoncloud-go/common"
+	. "github.com/archoncloud/archoncloud-go/common"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"

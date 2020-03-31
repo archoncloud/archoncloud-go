@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/itsmeknt/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/common"
 	"time"
 )
 

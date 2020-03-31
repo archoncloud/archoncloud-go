@@ -3,9 +3,9 @@ package upload
 
 import (
 	"fmt"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/interfaces"
-	"github.com/itsmeknt/archoncloud-go/shards"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
+	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/pkg/errors"
 	"net/url"
 	"path"

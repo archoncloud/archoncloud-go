@@ -1,7 +1,7 @@
 package account
 
 import (
-	. "github.com/itsmeknt/archoncloud-go/common"
+	. "github.com/archoncloud/archoncloud-go/common"
 	"gotest.tools/assert"
 	"log"
 	"testing"

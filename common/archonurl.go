@@ -2,7 +2,7 @@ package common
 
 import (
 	"fmt"
-	//permLayer "github.com/itsmeknt/archoncloud-go/networking/archon-dht/permission_layer"
+	//permLayer "github.com/archoncloud/archoncloud-go/networking/archon-dht/permission_layer"
 	"github.com/pkg/errors"
 	"net/url"
 	"strconv"

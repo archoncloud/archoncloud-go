@@ -2,7 +2,7 @@ package account
 
 import (
 	ecrypto "github.com/ethereum/go-ethereum/crypto"
-	ifc "github.com/itsmeknt/archoncloud-go/interfaces"
+	ifc "github.com/archoncloud/archoncloud-go/interfaces"
 )
 
 /*

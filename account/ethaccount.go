@@ -13,13 +13,13 @@ import (
 
 	"github.com/dustin/go-humanize"
 	ecrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/itsmeknt/archoncloud-go/blockchainAPI/ethereum/client_utils"
-	"github.com/itsmeknt/archoncloud-go/blockchainAPI/ethereum/register"
-	"github.com/itsmeknt/archoncloud-go/blockchainAPI/ethereum/wallet"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/interfaces"
-	dht "github.com/itsmeknt/archoncloud-go/networking/archon-dht"
-	"github.com/itsmeknt/archoncloud-go/shards"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/client_utils"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/register"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/wallet"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
+	dht "github.com/archoncloud/archoncloud-go/networking/archon-dht"
+	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/pariz/gountries"
 )
 

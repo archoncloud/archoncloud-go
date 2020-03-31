@@ -3,8 +3,8 @@ package download
 import (
 	"bytes"
 	"fmt"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/shards"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/pkg/errors"
 	"io"
 	fp "path/filepath"

@@ -3,12 +3,12 @@ package storageProvider
 import (
 	"fmt"
 	"github.com/dustin/go-humanize"
-	"github.com/itsmeknt/archoncloud-go/account"
-	"github.com/itsmeknt/archoncloud-go/blockchainAPI/ethereum/client_utils"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	dht "github.com/itsmeknt/archoncloud-go/networking/archon-dht"
-	"github.com/itsmeknt/archoncloud-go/networking/archon-dht/dht_permission_layer"
-	dhtp "github.com/itsmeknt/archoncloud-go/networking/archon-dht/permission_layers"
+	"github.com/archoncloud/archoncloud-go/account"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/client_utils"
+	. "github.com/archoncloud/archoncloud-go/common"
+	dht "github.com/archoncloud/archoncloud-go/networking/archon-dht"
+	"github.com/archoncloud/archoncloud-go/networking/archon-dht/dht_permission_layer"
+	dhtp "github.com/archoncloud/archoncloud-go/networking/archon-dht/permission_layers"
 	"sort"
 	"time"
 )

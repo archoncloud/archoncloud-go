@@ -1,7 +1,7 @@
 package storageProvider
 
 import (
-	. "github.com/itsmeknt/archoncloud-go/common"
+	. "github.com/archoncloud/archoncloud-go/common"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	fp "path/filepath"

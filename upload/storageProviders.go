@@ -3,10 +3,10 @@ package upload
 import (
 	"fmt"
 	"github.com/gofrs/flock"
-	"github.com/itsmeknt/archoncloud-go/account"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/interfaces"
-	"github.com/itsmeknt/archoncloud-go/networking/archon-dht/dht_permission_layer"
+	"github.com/archoncloud/archoncloud-go/account"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
+	"github.com/archoncloud/archoncloud-go/networking/archon-dht/dht_permission_layer"
 	"os"
 	"time"
 )

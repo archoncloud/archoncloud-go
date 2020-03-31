@@ -3,9 +3,9 @@ package storageProvider
 import (
 	"errors"
 	"fmt"
-	"github.com/itsmeknt/archoncloud-go/account"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/interfaces"
+	"github.com/archoncloud/archoncloud-go/account"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/jessevdk/go-flags"
 	"os"
 	"path/filepath"

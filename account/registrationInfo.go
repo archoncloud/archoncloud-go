@@ -2,8 +2,8 @@ package account
 
 import (
 	"fmt"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/interfaces"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/pariz/gountries"
 	"github.com/pkg/errors"
 	"strings"

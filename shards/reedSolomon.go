@@ -1,7 +1,7 @@
 package shards
 
 import (
-	. "github.com/itsmeknt/archoncloud-go/common"
+	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/vivint/infectious"
 )
 

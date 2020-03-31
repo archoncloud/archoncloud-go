@@ -3,8 +3,8 @@ package shards
 import (
 	"bytes"
 	"fmt"
-	. "github.com/itsmeknt/archoncloud-go/common"
-	"github.com/itsmeknt/archoncloud-go/interfaces"
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/pkg/errors"
 	"hash/crc32"
 	"io"
