@@ -3,7 +3,7 @@ module github.com/archoncloud/archoncloud-go
 go 1.13
 
 require (
-	github.com/archoncloud/archon-dht v0.0.21-0.20200402233105-0676c620007e
+	github.com/archoncloud/archon-dht v0.0.22
 	github.com/archoncloud/archoncloud-ethereum v0.0.15
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/dustin/go-humanize v1.0.0
