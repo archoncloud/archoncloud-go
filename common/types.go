@@ -55,8 +55,6 @@ func (a *ArchonSignature) String() string {
 	return BytesToString((*a)[:])
 }
 
-type BCAddress string
-
 type ContainsEpResponse struct {
 	ShardIdx []int	`json:"shards"`
 }

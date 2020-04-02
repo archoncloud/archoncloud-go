@@ -3,20 +3,19 @@ package client_utils
 import (
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/blockchainAPI/registered_sp"
-	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/pariz/gountries"
 )
 
-func GetNodeID2Address(nodeID string) (addr BCAddress, err error) {
+func GetNodeID2Address(nodeID string) (addr string, err error) {
 	addrS, err := neo.GetSpAddress(string(nodeID))
 	if err != nil {
 		return
 	}
-	addr = BCAddress(addrS)
+	addr = addrS
 	return
 }
 
-func GetRegisteredSP(neoAddress BCAddress) (sp *RegisteredSp, err error) {
+func GetRegisteredSP(neoAddress string) (sp *RegisteredSp, err error) {
 	prof, err := neo.GetSpProfile(string(neoAddress))
 	if err != nil {
 		return
