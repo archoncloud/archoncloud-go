@@ -2,13 +2,13 @@ package storageProvider
 
 import (
 	"fmt"
-	"github.com/dustin/go-humanize"
+	dht "github.com/archoncloud/archon-dht/archon"
+	dhtp "github.com/archoncloud/archon-dht/dht_permission_layers"
+	"github.com/archoncloud/archon-dht/permission_layer"
+	"github.com/archoncloud/archoncloud-ethereum/client_utils"
 	"github.com/archoncloud/archoncloud-go/account"
-	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/client_utils"
 	. "github.com/archoncloud/archoncloud-go/common"
-	dht "github.com/archoncloud/archoncloud-go/networking/archon-dht"
-	"github.com/archoncloud/archoncloud-go/networking/archon-dht/dht_permission_layer"
-	dhtp "github.com/archoncloud/archoncloud-go/networking/archon-dht/permission_layers"
+	"github.com/dustin/go-humanize"
 	"sort"
 	"time"
 )
@@ -33,7 +33,7 @@ func GetDownloadUrlsForShard(shard string, timeout time.Duration) (mergedUrls []
 	return
 }
 
-func GetSPProfiles(layer dht_permission_layer.PermissionLayerID) (StorageProviders, error) {
+func GetSPProfiles(layer permission_layer.PermissionLayerID) (StorageProviders, error) {
 	sps := NewStorageProviders(0)
 	profiles, err := dhtInstance.GetArchonSPProfilesForMarketplace(layer)
 	if err != nil {return sps, err}
@@ -98,7 +98,7 @@ func AnnounceToDht(shard, layerId string) (err error) {
 // showInfo just displays marketplace info about the registered SPs and this SP
 func showInfo() {
 	if SPAccount.Eth != nil {
-		sps, err := GetSPProfiles(dht_permission_layer.EthPermissionId)
+		sps, err := GetSPProfiles(permission_layer.EthPermissionId)
 		Abort(err)
 		asks := make([]int64, 0)
 		for _, sp := range sps {

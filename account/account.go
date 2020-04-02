@@ -6,7 +6,7 @@ import (
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	ifc "github.com/archoncloud/archoncloud-go/interfaces"
-	"github.com/archoncloud/archoncloud-go/networking/archon-dht/dht_permission_layer"
+	"github.com/archoncloud/archon-dht/permission_layer"
 	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/pkg/errors"
 	"io"
@@ -44,14 +44,14 @@ func ArchonSignatureFor(r io.Reader, acc ifc.IAccount) (string, []byte, int64,  
 	return BytesToString(hash), sig, n, err
 }
 
-func PermLayerID(acc ifc.IAccount) dht_permission_layer.PermissionLayerID {
+func PermLayerID(acc ifc.IAccount) permission_layer.PermissionLayerID {
 	if acc != nil {
 		switch acc.GetAccountType() {
-		case ifc.EthAccountType: return dht_permission_layer.EthPermissionId
-		case ifc.NeoAccountType: return dht_permission_layer.NeoPermissionId
+		case ifc.EthAccountType: return permission_layer.EthPermissionId
+		case ifc.NeoAccountType: return permission_layer.NeoPermissionId
 		}
 	}
-	return dht_permission_layer.NotPermissionId
+	return permission_layer.NotPermissionId
 }
 
 func IsEth(acc ifc.IAccount) bool {

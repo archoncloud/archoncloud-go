@@ -11,15 +11,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dustin/go-humanize"
-	ecrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/client_utils"
-	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/register"
-	"github.com/archoncloud/archoncloud-go/blockchainAPI/ethereum/wallet"
+	dht "github.com/archoncloud/archon-dht/archon"
+	"github.com/archoncloud/archoncloud-ethereum/client_utils"
+	"github.com/archoncloud/archoncloud-ethereum/register"
+	"github.com/archoncloud/archoncloud-ethereum/wallet"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
-	dht "github.com/archoncloud/archoncloud-go/networking/archon-dht"
 	"github.com/archoncloud/archoncloud-go/shards"
+	"github.com/dustin/go-humanize"
+	ecrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/pariz/gountries"
 )
 
@@ -37,6 +37,7 @@ type EthAccount struct {
 	address         []byte            // Ethereum ID (20 bytes)
 	privateKeyBytes []byte            // 32 bytes
 	publicKeyBytes  []byte            // 64 bytes The Ethereum public key is 65 bytes. First byte is always 4
+	keyset			*wallet.EthereumKeyset
 }
 
 const (
@@ -273,7 +274,12 @@ func NewEthAccount(walletPath string, password string) (ethAcc *EthAccount, err 
 	}
 
 	var account EthAccount
-	account.privateKeyBytes = keySet.PrivateKey[:]
+	account.keyset = &keySet
+	pri, err := keySet.ExportPrivateKey()
+	if err != nil {
+		return
+	}
+	account.privateKeyBytes = StringToBytes(pri)
 	account.PrivateKey, err = ecrypto.ToECDSA(account.privateKeyBytes)
 	if err != nil {
 		return
@@ -296,11 +302,7 @@ func (account *EthAccount) GetEthPrivate() *[32]byte {
 }
 
 func (account *EthAccount) GetEthereumKeyset() *wallet.EthereumKeyset {
-	ks := wallet.EthereumKeyset{}
-	copy(ks.PrivateKey[:], account.PrivateKeyBytes())
-	copy(ks.PublicKey[:], account.PublicKeyBytes())
-	copy(ks.Address[:], account.AddressBytes())
-	return &ks
+	return account.keyset
 }
 
 func PublicFromPrivate(priv *ecdsa.PrivateKey) []byte {

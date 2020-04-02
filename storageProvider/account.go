@@ -1,11 +1,11 @@
 package storageProvider
 
 import (
+	dht "github.com/archoncloud/archon-dht/archon"
+	dhtp "github.com/archoncloud/archon-dht/dht_permission_layers"
 	"github.com/archoncloud/archoncloud-go/account"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
-	dht "github.com/archoncloud/archoncloud-go/networking/archon-dht"
-	dhtp "github.com/archoncloud/archoncloud-go/networking/archon-dht/permission_layers"
 	"github.com/pariz/gountries"
 	"math"
 	"os"

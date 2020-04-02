@@ -2,11 +2,11 @@ package storageProvider
 
 import (
 	"fmt"
-	"github.com/dustin/go-humanize"
+	"github.com/archoncloud/archon-dht/permission_layer"
 	"github.com/archoncloud/archoncloud-go/account"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
-	"github.com/archoncloud/archoncloud-go/networking/archon-dht/dht_permission_layer"
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 	"net/http"
 	fp "path/filepath"
@@ -99,14 +99,14 @@ func retrieveHandler(w http.ResponseWriter, r *http.Request) {
 	httpInfo(w, r, response.String())
 }
 
-func getPermLayer(r *http.Request) dht_permission_layer.PermissionLayerID {
+func getPermLayer(r *http.Request) permission_layer.PermissionLayerID {
 	layer := strings.ToUpper(r.URL.Query().Get("layer"))
-	pl := dht_permission_layer.PermissionLayerID(layer)
+	pl := permission_layer.PermissionLayerID(layer)
 	switch pl {
-	case dht_permission_layer.EthPermissionId:
-	case dht_permission_layer.NeoPermissionId:
-	case dht_permission_layer.NotPermissionId:
-	default: pl = dht_permission_layer.EthPermissionId
+	case permission_layer.EthPermissionId:
+	case permission_layer.NeoPermissionId:
+	case permission_layer.NotPermissionId:
+	default: pl = permission_layer.EthPermissionId
 	}
 	return pl;
 }
