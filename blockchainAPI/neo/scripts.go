@@ -2,12 +2,7 @@ package neo
 
 import (
 	. "github.com/archoncloud/archoncloud-go/common"
-	"github.com/joeqian10/neo-gogogo/helper"
 )
-
-// To deploy contract. For "public static object Main(string method, object[] args)"
-// Parameter List: 0710
-// Return Type: 10
 
 func cgasScript() string {
 	switch BuildConfig {
@@ -18,14 +13,12 @@ func cgasScript() string {
 }
 
 func archonCloudScript() string {
+	// To deploy contract. For "public static object Main(string method, object[] args)"
+	// Parameter List: 0710
+	// Return Type: 10
 	switch BuildConfig {
 	case Debug:	return "0xdd8491f941dff98947bcc88f9786c4f7e2419ea2"	// local computer
-	case Beta:	return "0xf1494e3987e0c4f35695cde582c9feb905845644"	// AWS testnet
+	case Beta:	return "0xf1494e3987e0c4f35695cde582c9feb905845644"	// testnet
 	default:	return ""
 	}
-}
-
-func cgasScriptHash()  (scriptHash helper.UInt160)  {
-	scriptHash, _ = helper.UInt160FromString(cgasScript())
-	return
 }

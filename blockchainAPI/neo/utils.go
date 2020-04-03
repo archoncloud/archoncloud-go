@@ -369,3 +369,8 @@ func GetAddressStorageValue(table, key string) (addr string, err error) {
 	addr = helper.ScriptHashToAddress(u)
 	return
 }
+
+func cgasScriptHash()  (scriptHash helper.UInt160)  {
+	scriptHash, _ = helper.UInt160FromString(cgasScript())
+	return
+}

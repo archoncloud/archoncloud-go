@@ -91,22 +91,18 @@ func GetLoggingLevel() LoggingLevel {
 func SetLoggingLevel(level LoggingLevel) {
 	if level != loggingLevel {
 		loggingLevel = level
-		var levelName string
-		switch loggingLevel {
-		case LogLevelDebug:
-			levelName = "debug"
-		case LogLevelTrace:
-			levelName = "trace"
-		case LogLevelInfo:
-			levelName = "info"
-		case LogLevelWarning:
-			levelName = "warning"
-		case LogLevelError:
-			levelName = "error"
-		default:
-			levelName = "unknown"
-		}
-		fmt.Printf("Logging level is %q\n", levelName)
+		fmt.Printf("Logging level is %q\n", loggingLevel)
+	}
+}
+
+func (l LoggingLevel) String() string {
+	switch l {
+	case LogLevelDebug:		return "debug"
+	case LogLevelTrace:		return "trace"
+	case LogLevelInfo:		return "info"
+	case LogLevelWarning:	return"warning"
+	case LogLevelError:		return "error"
+	default:				return "unknown"
 	}
 }
 
@@ -122,5 +118,7 @@ func SetLoggingLevelFromName(level string) {
 		SetLoggingLevel(LogLevelWarning)
 	case "error":
 		SetLoggingLevel(LogLevelError)
+	default:
+		SetLoggingLevel(LogLevelInfo)
 	}
 }

@@ -3,6 +3,7 @@ package storageProvider
 import (
 	"errors"
 	"fmt"
+	dhtcommon "github.com/archoncloud/archon-dht/common"
 	"github.com/archoncloud/archoncloud-go/account"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
@@ -231,6 +232,9 @@ func ProcessArgs() {
 		confChanged = true
 	}
 	SetLoggingLevelFromName(conf.LogLevel)
+	dhtcommon.InitLogging(filepath.Join(rootFolder, LogFolder, "dht.log"))
+	dhtcommon.SetLoggingLevelFromName(conf.LogLevel)
+
 	showPassword = options.ShowPassword != nil && *options.ShowPassword
 	inBatchMode = options.BatchMode
 	fmt.Printf("Configuration is:\n   %s\n", conf.String())
