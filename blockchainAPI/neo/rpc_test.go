@@ -6,7 +6,6 @@ import (
 	"github.com/joeqian10/neo-gogogo/nep5"
 	"github.com/joeqian10/neo-gogogo/sc"
 	"github.com/joeqian10/neo-gogogo/tx"
-	//"github.com/joeqian10/neo-gogogo/sc"
 	"gotest.tools/assert"
 
 	"github.com/joeqian10/neo-gogogo/wallet"
@@ -92,6 +91,50 @@ func sp1Account() *wallet.Account {
 	return b
 }
 
+func uint160Address(addr string) helper.UInt160 {
+	ua, _ := helper.AddressToScriptHash(addr)
+	return ua
+}
+
+func cgasFromFloat(f float64) helper.Fixed8 {
+	return helper.Fixed8FromFloat64(f)
+}
+
+func printCgas(c uint64) {
+	c8 := helper.NewFixed8(int64(c))
+	cf := (helper.Fixed8ToFloat64(c8))
+	log.Println(cf)
+}
+
+func cGasBalanceFromAddress(addrS string, t *testing.T) {
+	n5h := nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint)
+	addr, err := helper.AddressToScriptHash(addrS)
+	if err != nil {log.Fatalln(err)}
+	bal, err := n5h.BalanceOf(addr)
+	if err != nil {log.Fatalln(err)}
+	printCgas(bal)
+}
+
+func cGasBalance(acc *wallet.Account, t *testing.T) {
+	cGasBalanceFromAddress(acc.Address, t)
+}
+
+func printCGASBalances(from, to helper.UInt160) {
+	nep5Helper := nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint)
+	bal1, _ := nep5Helper.BalanceOf(from)
+	bal2, _ := nep5Helper.BalanceOf(to)
+	log.Println(bal1,bal2)
+}
+
+func printCGASBalancesFromAddress(from, to string) {
+	nep5Helper := nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint)
+	f, _ := helper.AddressToScriptHash(from)
+	bal1, _ := nep5Helper.BalanceOf(f)
+	t, _ := helper.AddressToScriptHash(to)
+	bal2, _ := nep5Helper.BalanceOf(t)
+	log.Println(bal1,bal2)
+}
+
 func TestRpcCall1(t *testing.T) {
 	u, _ := wallet.NewAccountFromWIF("KzTkuYexzCxdvDKRys2mn4wSBqoXbHm7xJHdVA3t6dMyQdtHqVUa")
 	pars := new(UploadParamsForNeo)
@@ -145,6 +188,7 @@ func testReg(t *testing.T, acc *wallet.Account, prof *NeoSpProfile) {
 }
 
 func TestRegisterBootstrap(t *testing.T) {
+	log.Println("Register bootstrap")
 	testReg(t, bootStrapAccount(), bootStrapProfile())
 }
 
@@ -176,7 +220,7 @@ func TestGetSpProfile(t *testing.T) {
 	assert.Equal(t, profRet.MinAsk, minAsk)
 }
 
-func testRegisterUserName(acc *wallet.Account, name string, t *testing.T) {
+func registerUserName(acc *wallet.Account, name string, t *testing.T) {
 	n, err := GetUserName(acc.Address)
 	if err != nil {log.Fatal(err)}
 	if n == "" {
@@ -192,7 +236,7 @@ func testRegisterUserName(acc *wallet.Account, name string, t *testing.T) {
 }
 
 func TestRegisterUserName(t *testing.T) {
-	testRegisterUserName(dev1Account(),"dev1", t)
+	registerUserName(dev1Account(),"dev1", t)
 }
 
 func TestUnregisterUserName(t *testing.T) {
@@ -205,7 +249,7 @@ func TestUnregisterUserName(t *testing.T) {
 }
 
 func TestCGasName(t *testing.T) {
-	cgas := nep5.NewNep5Helper(cgasScriptHash(),neoEndpoint())
+	cgas := nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint)
 	s, err := cgas.Name()
 	if err != nil {log.Fatal(err)}
 	assert.Equal(t,"NEP5 GAS", s)
@@ -245,7 +289,7 @@ func TestGetAccountState(t *testing.T) {
 	log.Println(resp.ErrorResponse.HasError())
 	r1 := Client().GetUnspents(acc.Address)
 	log.Println(r1.ErrorResponse.HasError())
-	tb := tx.NewTransactionBuilder(neoEndpoint())
+	tb := tx.NewTransactionBuilder(NeoEndpoint)
 	f, _ := helper.AddressToScriptHash(acc.Address)
 	inputs, totalPay, err := tb.GetTransactionInputs(f, tx.GasToken, helper.Fixed8FromFloat64(0.1))
 	if err != nil {log.Fatalln(err)}
@@ -253,7 +297,7 @@ func TestGetAccountState(t *testing.T) {
 }
 
 func TestGetUploadTxInfo(t *testing.T) {
-	info, err := GetUploadTxInfo("46bbe94a7ce97dd937558a2067361f37e155f3ed314903c8f1c983eea93131b7")
+	info, err := GetUploadTxInfo("577d3ee9d9b73a61439cf121fdc7998a7e3a0275d9c2612479bba1181c1259e4")
 	if err != nil {log.Fatalln(err)}
 	log.Println(info.ToJsonString())
 }
@@ -266,65 +310,16 @@ func TestGetBlockHash(t *testing.T) {
 	log.Println(hash)
 }
 
-func uint160Address(addr string) helper.UInt160 {
-	ua, _ := helper.AddressToScriptHash(addr)
-	return ua
-}
-
-func cgasFromFloat(f float64) helper.Fixed8 {
-	return helper.Fixed8FromFloat64(f)
-}
-
-func printCgas(c uint64) {
-	c8 := helper.NewFixed8(int64(c))
-	cf := (helper.Fixed8ToFloat64(c8))
-	log.Println(cf)
-}
-
-func cGasBalanceFromAddress(addrS string, t *testing.T) {
-	n5h := nep5.NewNep5Helper(cgasScriptHash(),neoEndpoint())
-	addr, err := helper.AddressToScriptHash(addrS)
-	if err != nil {log.Fatalln(err)}
-	bal, err := n5h.BalanceOf(addr)
-	if err != nil {log.Fatalln(err)}
-	printCgas(bal)
-}
-
-func cGasBalance(acc *wallet.Account, t *testing.T) {
-	cGasBalanceFromAddress(acc.Address, t)
-}
-
-func printCGASBalances(from, to helper.UInt160) {
-	nep5Helper := nep5.NewNep5Helper(cgasScriptHash(),neoEndpoint())
-	bal1, _ := nep5Helper.BalanceOf(from)
-	bal2, _ := nep5Helper.BalanceOf(to)
-	log.Println(bal1,bal2)
-}
-
-func printCGASBalancesFromAddress(from, to string) {
-	nep5Helper := nep5.NewNep5Helper(cgasScriptHash(),neoEndpoint())
-	f, _ := helper.AddressToScriptHash(from)
-	bal1, _ := nep5Helper.BalanceOf(f)
-	t, _ := helper.AddressToScriptHash(to)
-	bal2, _ := nep5Helper.BalanceOf(t)
-	log.Println(bal1,bal2)
-}
-
 func TestCgasTotalSupply(t *testing.T) {
-	n5h := nep5.NewNep5Helper(cgasScriptHash(),neoEndpoint())
+	n5h := nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint)
 	total, err := n5h.TotalSupply()
 	if err != nil {log.Fatalln(err)}
 	printCgas(total)
 }
 
-func TestNewPrivateContract(t *testing.T) {
+func TestSp1AndDev1(t *testing.T) {
 	testReg(t, sp1Account(), sp1Profile())
-	testRegisterUserName(dev1Account(),"dev1", t)
-}
-
-func TestNewBetaContract(t *testing.T) {
-	log.Println("Register bootstrap")
-	testReg(t, bootStrapAccount(), bootStrapProfile())
+	registerUserName(dev1Account(),"dev1", t)
 }
 
 func TestSendNEO(t *testing.T) {
@@ -334,7 +329,7 @@ func TestSendNEO(t *testing.T) {
 }
 
 func TestMintCGas(t *testing.T) {
-	cgas := (*nep5.CgasHelper)(nep5.NewNep5Helper(cgasScriptHash(),neoEndpoint()))
+	cgas := (*nep5.CgasHelper)(nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint))
 	txId, err := cgas.MintTokens(dev1Account(),10.0)
 	if err != nil {log.Fatal(err)}
 	log.Println(txId)
@@ -356,11 +351,11 @@ func TestProposeUpload(t *testing.T) {
 	}
 	txId, err := ProposeUpload(uplAcc, &pars, 210, true)
 	if err != nil {log.Fatalln(err)}
-	log.Println(txId)
+	log.Println("txId", txId)
 	printCGASBalancesFromAddress(uplAcc.Address,spAcc.Address)
 }
 
-func Test_TransferCGas(t *testing.T)  {
+func TestTransferCGAS(t *testing.T)  {
 	fromAccount := dev1Account()
 	from, err := helper.AddressToScriptHash(fromAccount.Address)
 	if err != nil {log.Fatalln(err)}

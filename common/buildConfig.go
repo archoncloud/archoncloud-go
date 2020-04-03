@@ -3,7 +3,6 @@ package common
 const (
 	Release = iota
 	Beta
-	Dev
 	Debug
 )
 

@@ -3,7 +3,9 @@ package storageProvider
 import (
 	dht "github.com/archoncloud/archon-dht/archon"
 	dhtp "github.com/archoncloud/archon-dht/dht_permission_layers"
+	"github.com/archoncloud/archoncloud-ethereum/abi"
 	"github.com/archoncloud/archoncloud-go/account"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/pariz/gountries"
@@ -179,6 +181,14 @@ func SetupAccountAndDht() {
 	dhtConf := []dht.DHTConnectionConfig{publicDht}
 
 	if SPAccount.Eth != nil {
+		if len(config.EthRpcUrls) == 0 {
+			AbortWithString("The eth_rpc_urls section in the config file cannot be empty")
+		}
+		rpcEndpoint := FirstLiveUrl(config.EthRpcUrls)
+		if rpcEndpoint == "" {
+			AbortWithString("None of the eth_rpc_urls is responding")
+		}
+		abi.SetRpcUrl(rpcEndpoint)
 		ethDht := dht.DHTConnectionConfig{
 			interfaces.GetSeed(SPAccount.Eth),
 			true,
@@ -198,6 +208,13 @@ func SetupAccountAndDht() {
 	}
 
 	if SPAccount.Neo != nil {
+		if len(config.NeoRpcUrls) == 0 {
+			AbortWithString("The neo_rpc_urls section in the config file cannot be empty")
+		}
+		neo.NeoEndpoint = FirstLiveUrl(config.NeoRpcUrls)
+		if neo.NeoEndpoint == "" {
+			AbortWithString("None of the neo_rpc_urls is responding")
+		}
 		neoDht := dht.DHTConnectionConfig{
 			interfaces.GetSeed(SPAccount.Neo),
 			true,

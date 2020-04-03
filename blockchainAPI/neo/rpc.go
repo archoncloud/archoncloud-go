@@ -28,10 +28,17 @@ const (
 
 var clientOnce sync.Once
 var client *rpc.RpcClient
+var NeoEndpoint string // "http://127.0.0.1:10002"
+//"http://13.57.196.239:20332",
+
+func RpcUrls() []string {
+	// Defaults
+	return []string{"http://seed3.ngd.network:20332", "http://seed1.ngd.network:20332"}
+}
 
 func Client() *rpc.RpcClient {
 	clientOnce.Do(func() {
-		client = rpc.NewClient(neoEndpoint())
+		client = rpc.NewClient(NeoEndpoint)
 	})
 	return client
 }
@@ -232,17 +239,14 @@ func IsTxAccepted(txId string) (bool, error) {
 
 func WaitForTransaction(txId string) error {
 	var checkPeriod, checkTimeout time.Duration
+	fmt.Println("Waiting for transaction to complete...")
 	switch BuildConfig {
 	case Debug:
-		checkPeriod = 2 * time.Second
+		checkPeriod = 2*time.Second
 		checkTimeout = 8*time.Second
-	case Dev:
-		checkPeriod = 3 * time.Second
-		checkTimeout = 15*time.Second
 	default:
-		fmt.Println("Waiting for transaction to complete...")
-		checkPeriod = 10*time.Second
-		checkTimeout = 45*time.Second
+		checkPeriod = 9*time.Second
+		checkTimeout = 30*time.Second
 	}
 
 	start := time.Now()

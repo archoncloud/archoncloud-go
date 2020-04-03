@@ -239,9 +239,8 @@ func hexStringToString(s string) string {
 
 func getTxResponse(txId string) (log *rpc.GetApplicationLogResponse, notification string, err error) {
 	r:= Client().GetApplicationLog(txId)
-	msg := r.Error.Message
-	if len(msg) != 0 {
-		err = errors.New(msg)
+	if r.HasError() {
+		err = errors.New(r.Error.Message)
 		return
 	}
 	if len(r.Result.Executions) == 0 {
@@ -256,13 +255,12 @@ func getTxResponse(txId string) (log *rpc.GetApplicationLogResponse, notificatio
 		return
 	}
 	log = &r
-	/*
 	for _, n := range e.Notifications {
 		if n.State.Type == "Array" {
 			values := n.State.Value
 			if len(values) == 2 {
-				v := getValue(values[1].(map[string]interface{}))
-				switch getValue(values[0].(map[string]interface{})) {
+				v := getValue(&values[1])
+				switch getValue(&values[0]) {
 				case "notification":
 					notification = v
 					return
@@ -273,15 +271,13 @@ func getTxResponse(txId string) (log *rpc.GetApplicationLogResponse, notificatio
 			}
 		}
 	}
-	*/
 	return
 }
 
-func getValue(m map[string]interface{}) string {
-	if m != nil {
-		v, ok := m["value"]
-		if ok {
-			return hexStringToString(v.(string))
+func getValue(par *models.RpcContractParameter) string {
+	if par != nil {
+		if par.Type == "ByteArray" {
+			return hexStringToString(par.Value.(string))
 		}
 	}
 	return ""

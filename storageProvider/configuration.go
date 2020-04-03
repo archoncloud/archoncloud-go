@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/archoncloud/archoncloud-go/account"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/jessevdk/go-flags"
@@ -21,6 +22,8 @@ type Configuration struct {
 	Port			 string  `json:"port"` // the first of a consecutive range of 6 or more
 	LogLevel         string  `json:"log_level"`
 	// The following can only be edited manually
+	EthRpcUrls		[]string `json:"eth_rpc_urls"`
+	NeoRpcUrls		[]string `json:"neo_rpc_urls"`
 	BootstrapPeers	 []string `json:"bootstrap_peers"`
 	EthBootstrapPeers	 []string `json:"eth_bootstrap_peers"`
 	NeoBootstrapPeers	 []string `json:"neo_bootstrap_peers"`
@@ -31,30 +34,15 @@ var cfgOnce sync.Once
 var config *Configuration
 
 func bootStrapPeers() []string {
-	switch BuildConfig {
-	case Debug:  return []string{"/ip4/18.220.115.81/tcp/8001/ipfs/"+BootStrapNodeId}
-	case Dev:  return []string{"/ip4/18.220.115.81/tcp/8001/ipfs/"+BootStrapNodeId}
-	case Beta: return []string{"/ip4/18.220.115.81/tcp/9001/ipfs/"+BootStrapNodeId}
-	default: return nil
-	}
+	return []string{"/ip4/18.220.115.81/tcp/9001/ipfs/"+BootStrapNodeId}
 }
 
 func ethBootStrapPeers() []string {
-	switch BuildConfig {
-	case Debug:  return []string{"/ip4/18.220.115.81/tcp/8002/ipfs/"+BootStrapNodeId}
-	case Dev:  return []string{"/ip4/18.220.115.81/tcp/8002/ipfs/"+BootStrapNodeId}
-	case Beta: return []string{"/ip4/18.220.115.81/tcp/9002/ipfs/"+BootStrapNodeId}
-	default: return nil
-	}
+	return []string{"/ip4/18.220.115.81/tcp/9002/ipfs/"+BootStrapNodeId}
 }
 
 func neoBootStrapPeers() []string {
-	switch BuildConfig {
-	case Debug:  return []string{"/ip4/18.220.115.81/tcp/8003/ipfs/"+BootStrapNodeId}
-	case Dev:  return []string{"/ip4/18.220.115.81/tcp/8003/ipfs/"+BootStrapNodeId}
-	case Beta: return []string{"/ip4/18.220.115.81/tcp/9003/ipfs/"+BootStrapNodeId}
-	default: return nil
-	}
+	return []string{"/ip4/18.220.115.81/tcp/9003/ipfs/"+BootStrapNodeId}
 }
 
 var inBatchMode = false
@@ -70,6 +58,8 @@ func GetSPConfiguration() *Configuration {
 			"",
 			strconv.Itoa(SeedsPort()),
 			"Info",
+			nil,
+			neo.RpcUrls(),
 			bootStrapPeers(),
 			ethBootStrapPeers(),
 			neoBootStrapPeers(),

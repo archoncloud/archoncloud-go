@@ -30,7 +30,7 @@ func GetAllSeedUrls() []string {
 
 func SeedsPort() int {
 	switch BuildConfig {
-	case Debug, Dev: return 8000
+	case Debug: return 8000
 	case Beta: return 9000
 	default: return 0
 	}
