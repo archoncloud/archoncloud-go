@@ -275,11 +275,7 @@ func NewEthAccount(walletPath string, password string) (ethAcc *EthAccount, err 
 
 	var account EthAccount
 	account.keyset = &keySet
-	pri, err := keySet.ExportPrivateKey()
-	if err != nil {
-		return
-	}
-	account.privateKeyBytes = StringToBytes(pri)
+	account.privateKeyBytes = keySet.ExportPrivateKeyBytes()
 	account.PrivateKey, err = ecrypto.ToECDSA(account.privateKeyBytes)
 	if err != nil {
 		return

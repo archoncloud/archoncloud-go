@@ -41,6 +41,10 @@ github.com/archoncloud/archoncloud-ethereum v0.0.15/go.mod h1:2V+FoKRl62TQ+qVFFB
 github.com/archoncloud/archoncloud-ethereum v0.0.16/go.mod h1:2V+FoKRl62TQ+qVFFBdiwLPHlLUZgJBGLwWs9EhrQy8=
 github.com/archoncloud/archoncloud-ethereum v0.0.17 h1:qNLvxS+0HGq6ZXDqh9gC1Od6CfdG2CciQ9ELU1qaWLc=
 github.com/archoncloud/archoncloud-ethereum v0.0.17/go.mod h1:2V+FoKRl62TQ+qVFFBdiwLPHlLUZgJBGLwWs9EhrQy8=
+github.com/archoncloud/archoncloud-ethereum v0.0.18 h1:7bwC2JBEvyz03pGyrWwriVmccHm0XZO8sQH7FBjcr+o=
+github.com/archoncloud/archoncloud-ethereum v0.0.18/go.mod h1:2V+FoKRl62TQ+qVFFBdiwLPHlLUZgJBGLwWs9EhrQy8=
+github.com/archoncloud/archoncloud-ethereum v0.0.19 h1:ciuUaXsHga51FcNvCJHJfUzBsNS/t5V3xPlrcVXyaeY=
+github.com/archoncloud/archoncloud-ethereum v0.0.19/go.mod h1:2V+FoKRl62TQ+qVFFBdiwLPHlLUZgJBGLwWs9EhrQy8=
 github.com/archoncloud/archoncloud-go v0.0.3/go.mod h1:DreiPM5Eocj33PhGXVMoqziHrA3lcLjpruvcA+cFbFo=
 github.com/archoncloud/archoncloud-go v0.0.4/go.mod h1:DreiPM5Eocj33PhGXVMoqziHrA3lcLjpruvcA+cFbFo=
 github.com/aristanetworks/goarista v0.0.0-20170210015632-ea17b1a17847 h1:rtI0fD4oG/8eVokGVPYJEW1F88p1ZNgXiEIs9thEE4A=
