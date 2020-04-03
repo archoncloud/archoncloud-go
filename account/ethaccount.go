@@ -150,12 +150,14 @@ func (acc *EthAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, 
 		return
 	}
 	par := register.SPParams{
+		Wallet:         *acc.keyset,
 		SLALevel:       1,
 		PledgedStorage: uint64(r.PledgedGigaBytes * humanize.GByte),
 		Bandwidth:      0,
 		CountryCode:    country.Codes,
 		MinAskPrice:    uint64(r.Ethereum.WeiPerByte * Mega),
 		Stake:          uint64(r.Ethereum.EthStake * EthToWei),
+		HardwareProof:  [32]byte{},
 		NodeID:         nodeId.Pretty(),
 	}
 	for i := 0; i < 32; i++ {
@@ -176,7 +178,9 @@ func (acc *EthAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, 
 }
 
 func (acc *EthAccount) UnregisterSP() (err error) {
-	par := register.SPParams{}
+	par := register.SPParams{
+		Wallet:         *acc.keyset,
+	}
 	txId, err := register.UnregisterSP(par)
 	if err == nil {
 		LogInfo.Printf("Unregister transaction ID=%s\n", txId)

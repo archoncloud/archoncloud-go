@@ -143,7 +143,7 @@ func SetupAccountAndDht() {
 		var password string
 		if debug {
 			// To avoid having to type this
-			password = "ethTestingWallet"
+			password = "ethTestingWallet7"
 		} else {
 			password = GetPassword("Ethereum", showPassword)
 		}
