@@ -6,7 +6,7 @@ import (
 	"github.com/archoncloud/archoncloud-go/account"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
-	"github.com/archoncloud/archoncloud-go/networking/archon-dht/dht_permission_layer"
+	"github.com/archoncloud/archon-dht/permission_layer"
 	"os"
 	"time"
 )
@@ -72,7 +72,7 @@ func currentSPs(acc interfaces.IAccount) (storageProviders StorageProviders, err
 	return
 }
 
-func refreshCache(p dht_permission_layer.PermissionLayerID, cachePath string) (err error) {
+func refreshCache(p permission_layer.PermissionLayerID, cachePath string) (err error) {
 	// Map from address to profile
 	m := make(map[string]SpProfile)
 	for _, seed := range GetAllSeedUrls() {

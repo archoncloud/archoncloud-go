@@ -32,6 +32,8 @@ github.com/archoncloud/archon-dht v0.0.19 h1:ZkyreABLIFx8ei7i2+dH4unUdxdjRGJDYms
 github.com/archoncloud/archon-dht v0.0.19/go.mod h1:63n1vMrU5Ext9nc0M6EiQnsobmpk3K2fr+rQ/bE6rFk=
 github.com/archoncloud/archon-dht v0.0.20 h1:c/RDQkFZtvuXF1KefBOHwmB1UCD3W7Zap7FUaRhsqM4=
 github.com/archoncloud/archon-dht v0.0.20/go.mod h1:63n1vMrU5Ext9nc0M6EiQnsobmpk3K2fr+rQ/bE6rFk=
+github.com/archoncloud/archon-dht v0.0.21 h1:M58HBegoXqdP/56WP1Zzc8zJgKznhMuHnMTM7XodW/E=
+github.com/archoncloud/archon-dht v0.0.21/go.mod h1:63n1vMrU5Ext9nc0M6EiQnsobmpk3K2fr+rQ/bE6rFk=
 github.com/archoncloud/archoncloud-ethereum v0.0.15 h1:lQLzT+BZ69IHNURnRjPwWZ/gHfXEp2zxmMPh1O/5Nmw=
 github.com/archoncloud/archoncloud-ethereum v0.0.15/go.mod h1:2V+FoKRl62TQ+qVFFBdiwLPHlLUZgJBGLwWs9EhrQy8=
 github.com/archoncloud/archoncloud-go v0.0.3/go.mod h1:DreiPM5Eocj33PhGXVMoqziHrA3lcLjpruvcA+cFbFo=
@@ -106,6 +108,7 @@ github.com/go-ole/go-ole v1.2.1/go.mod h1:7FAglXiTm7HKlQRDeOQ6ZNUHidzCWXuZWq/1dT
 github.com/go-sourcemap/sourcemap v2.1.2+incompatible/go.mod h1:F8jJfvm2KbVjc5NqelyYJmf/v5J0dwNLS2mL4sNA1Jg=
 github.com/go-stack/stack v1.8.0 h1:5SgMzNM5HxrEjV0ww2lTmX6E2Izsfxas4+YHWRs3Lsk=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
+github.com/gofrs/flock v0.7.1 h1:DP+LD/t0njgoPBvT5MJLeliUIVQR03hiKR6vezdwHlc=
 github.com/gofrs/flock v0.7.1/go.mod h1:F1TvTiK9OcQqauNUHlbJvyl9Qa1QvF/gOUDKA14jxHU=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.1/go.mod h1:hp+jE20tsWTFYpLwKvXlhS1hjn+gTNwPg2I6zVXpSg4=

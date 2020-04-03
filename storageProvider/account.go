@@ -167,7 +167,6 @@ func SetupAccountAndDht() {
 		RandomInt64(0, math.MaxInt64),	// Seed
 		true,                          		// Global
 		false,                      	// IAmBootstrap
-		nil,
 		true,               	// OptInToNetworking
 		country.Codes,             	// SelfReportedCountryCode
 		dhtp.NonPermissioned{},
@@ -184,7 +183,6 @@ func SetupAccountAndDht() {
 			interfaces.GetSeed(SPAccount.Eth),
 			true,
 			false,
-			SPAccount.Eth,
 			true,
 			country.Codes,
 			dhtp.Ethereum{},
@@ -204,7 +202,6 @@ func SetupAccountAndDht() {
 			interfaces.GetSeed(SPAccount.Neo),
 			true,
 			false,
-			SPAccount.Neo,
 			true,
 			country.Codes,
 			dhtp.Neo{},
