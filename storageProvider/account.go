@@ -3,7 +3,7 @@ package storageProvider
 import (
 	dht "github.com/archoncloud/archon-dht/archon"
 	dhtp "github.com/archoncloud/archon-dht/dht_permission_layers"
-	"github.com/archoncloud/archoncloud-ethereum/abi"
+	"github.com/archoncloud/archoncloud-ethereum/rpc_utils"
 	"github.com/archoncloud/archoncloud-go/account"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
@@ -184,11 +184,8 @@ func SetupAccountAndDht() {
 		if len(config.EthRpcUrls) == 0 {
 			AbortWithString("The eth_rpc_urls section in the config file cannot be empty")
 		}
-		rpcEndpoint := FirstLiveUrl(config.EthRpcUrls)
-		if rpcEndpoint == "" {
-			AbortWithString("None of the eth_rpc_urls is responding")
-		}
-		abi.SetRpcUrl(rpcEndpoint)
+		err = rpc_utils.SetRpcUrl(config.EthRpcUrls)
+		Abort(err)
 		ethDht := dht.DHTConnectionConfig{
 			interfaces.GetSeed(SPAccount.Eth),
 			true,
