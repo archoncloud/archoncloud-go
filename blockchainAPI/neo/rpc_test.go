@@ -135,26 +135,8 @@ func printCGASBalancesFromAddress(from, to string) {
 	log.Println(bal1,bal2)
 }
 
-func TestRpcCall1(t *testing.T) {
-	u, _ := wallet.NewAccountFromWIF("KzTkuYexzCxdvDKRys2mn4wSBqoXbHm7xJHdVA3t6dMyQdtHqVUa")
-	pars := new(UploadParamsForNeo)
-	pars.UserName="marius"
-	pars.FileContainerType=1
-	pars.ContainerSignature = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-	pars.SPsToUploadTo = []string{"AWdcDR2dhs3tFCHGzjdJ6vtVZybVF3c7eE"}
-	txId, err := ProposeUpload(u,pars,200, true)
-	if err != nil {t.Fatal(err)}
-	info, err := GetUploadTxInfo(txId)
-	if err != nil {t.Fatal(err)}
-	t.Log(info.ToJsonString())
-
-	//v := ArchonContractVersion()
-	//t.Log(v)
-}
-
 func TestIsSpRegistered(t *testing.T) {
-	b := bootStrapAccount()
-	ok := IsSpRegistered(b.Address)
+	ok := IsSpRegistered(sp1Account().Address)
 	if !ok {
 		log.Fatalf("not registered")
 	}

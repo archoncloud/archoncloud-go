@@ -4,7 +4,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/archoncloud/archoncloud-ethereum/abi"
 	"github.com/archoncloud/archoncloud-go/account"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/download"
 	"github.com/archoncloud/archoncloud-go/interfaces"
@@ -14,27 +16,6 @@ import (
 	"os"
 	"strings"
 )
-
-/*
-for Uploader client:
-1. on initialization:
- -open ethereum wallet
- -check if ethereum wallet is already registered with a username
- -if so, display username, if not, display "not yet registered"
- -download list of SPs registered on the smart contract, then display their upload URLs
-2. registerUsername function: given a username string, sends a registerUsername tx.
- -filter for the username. illegal characters: / . # @ ~ * < > : " ?
-3. upload function: given file data, archon filepath, encodingOptions (right now, just encoded/notencoded but more options in the future), and a list of storage provider ethereum addresses to upload to
- -filter archon filepath. illegal characters: # ~ * < > : " ?
- -the way the upload works is:
-for (int i = 0; i < shards.length; i++) {
- byte* shard = shards[i];
- SP sp = listOfSp[i % listOfSp.length];
- upload(shard, sp);
-}
- -if the file is unencoded, treat that as just a 1 shard file
- -the upload function will return an archon named URL and archon hash URL on completion, generated client-side and possibly double checked from the response of the SP (edited)
-*/
 
 var isUpload, isDownload bool
 
@@ -47,6 +28,9 @@ type Configuration struct {
 	ReedSolomonRequired int    `json:"rs_required"`
 	ReedSolomonTotal    int    `json:"rs_total"`
 	DownloadDir			string `json:"download_dir"`
+	// The following can only be edited manually
+	EthRpcUrls		[]string `json:"eth_rpc_urls"`
+	NeoRpcUrls		[]string `json:"neo_rpc_urls"`
 }
 
 func (c *Configuration) String() string {
@@ -72,6 +56,8 @@ func newConfiguration() *Configuration {
 		3,
 		8,
 		"",
+		nil,
+		neo.RpcUrls(),
 	}
 	err := GetAppConfiguration(&conf)
 	if !errors.Is(err, os.ErrNotExist ) {
@@ -217,7 +203,22 @@ func main() {
 		if options.UploadGroup.File == "" {
 			InvalidArgs("You need to specify a file")
 		}
-		account := conf.getAccount(options.PasswordFile)
+		acc := conf.getAccount(options.PasswordFile)
+		switch acc.GetAccountType() {
+		case interfaces.EthAccountType:
+			rpcEndpoint := FirstLiveUrl(conf.EthRpcUrls)
+			if rpcEndpoint == "" {
+				AbortWithString("None of the eth_rpc_urls is responding")
+			}
+			abi.SetRpcUrl(rpcEndpoint)
+		case interfaces.NeoAccountType:
+			neo.NeoEndpoint = FirstLiveUrl(conf.NeoRpcUrls)
+			if neo.NeoEndpoint == "" {
+				AbortWithString("None of the neo_rpc_urls is responding")
+			}
+		default:
+			AbortWithString("unknown account type")
+		}
 
 		req := upload.Request{
 			options.UploadGroup.File,
@@ -228,7 +229,7 @@ func main() {
 			conf.Overwrite,
 			conf.HashUrl,
 			conf.PreferHttp,
-			account,
+			acc,
 			batch,
 			0,
 		}

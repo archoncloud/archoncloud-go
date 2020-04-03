@@ -25,14 +25,6 @@ func archonCloudScript() string {
 	}
 }
 
-func archonCloudScriptHash() (scriptHash helper.UInt160) {
-	scriptHash, err := helper.UInt160FromString(archonCloudScript())
-	if err != nil {
-		panic(err)
-	}
-	return
-}
-
 func cgasScriptHash()  (scriptHash helper.UInt160)  {
 	scriptHash, _ = helper.UInt160FromString(cgasScript())
 	return

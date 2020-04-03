@@ -19,6 +19,14 @@ const (
 	stringSep = "|"	// Also used in contract
 )
 
+func archonCloudScriptHash() (scriptHash helper.UInt160) {
+	scriptHash, err := helper.UInt160FromString(archonCloudScript())
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
 // callArchonContract calls a method in the Archon Cloud contract
 func callArchonContract(method string, args []sc.ContractParameter, from *wallet.Account, waitForConfirm bool) (log *models.RpcApplicationLog, txId string, err error) {
 	sb := sc.NewScriptBuilder()

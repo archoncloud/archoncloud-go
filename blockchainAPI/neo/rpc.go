@@ -28,16 +28,20 @@ const (
 
 var clientOnce sync.Once
 var client *rpc.RpcClient
-var NeoEndpoint string // "http://127.0.0.1:10002"
-//"http://13.57.196.239:20332",
+var NeoEndpoint string
 
 func RpcUrls() []string {
 	// Defaults
+	// "http://127.0.0.1:10002"
+	//"http://13.57.196.239:20332",
 	return []string{"http://seed3.ngd.network:20332", "http://seed1.ngd.network:20332"}
 }
 
 func Client() *rpc.RpcClient {
 	clientOnce.Do(func() {
+		if NeoEndpoint == "" {
+			NeoEndpoint = FirstLiveUrl(RpcUrls())
+		}
 		client = rpc.NewClient(NeoEndpoint)
 	})
 	return client
