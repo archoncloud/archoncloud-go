@@ -125,7 +125,7 @@ func spProfilesHandler(w http.ResponseWriter, r *http.Request) {
 	for _, sp := range sps {
 		response.Sps = append(response.Sps,sp)
 	}
-	httpDebug(w, r, response.String())
+	fmt.Println(w, response.String())
 }
 
 // containsHandler implements the "/contains" endpoint

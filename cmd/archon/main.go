@@ -283,7 +283,7 @@ func (conf *Configuration) getAccount(passwordFile *string) interfaces.IAccount 
 	Abort(err)
 	switch acc.GetAccountType() {
 	case interfaces.EthAccountType:
-		if len(conf.EthRpcUrls) == 0 {
+		if conf.EthRpcUrls == nil {
 			AbortWithString("eth_rpc_urls needs to be filled in")
 		}
 		rpc_utils.SetRpcUrl(conf.EthRpcUrls)
