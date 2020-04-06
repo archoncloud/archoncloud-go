@@ -48,7 +48,14 @@ func Client() *rpc.RpcClient {
 }
 
 func SetRpcUrl(rpcUrls []string) {
-	NeoEndpoint = FirstLiveUrl(rpcUrls, 20332)
+	var port int
+	switch BuildConfig {
+	case Release:	port = 10333
+	case Beta:		port = 20332
+	case Debug:		port = 10002
+	default:		port = 0
+	}
+	NeoEndpoint = FirstLiveUrl(rpcUrls, port)
 }
 
 
@@ -117,14 +124,6 @@ func GetSpMinAsk(address string) (minAsk int64, err error) {
 	}
 	return
 }
-
-//func GetSpNodeId(address string) (nodeId string, err error) {
-//	prof, err := GetSpProfile(address)
-//	if err == nil {
-//		nodeId = prof.NodeId
-//	}
-//	return
-//}
 
 func GetSpAddress(nodeId string) (address string, err error) {
 	address, err = GetAddressStorageValue(nodeIdToAddrMap, nodeId)
@@ -255,7 +254,7 @@ func WaitForTransaction(txId string) error {
 		checkTimeout = 8*time.Second
 	default:
 		checkPeriod = 9*time.Second
-		checkTimeout = 30*time.Second
+		checkTimeout = 45*time.Second
 	}
 
 	start := time.Now()
