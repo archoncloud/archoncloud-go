@@ -4,7 +4,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/archoncloud/archoncloud-ethereum/abi"
+	"github.com/archoncloud/archoncloud-ethereum/rpc_utils"
 	"github.com/archoncloud/archoncloud-go/account"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
@@ -216,18 +216,6 @@ func main() {
 			InvalidArgs("You need to specify a file")
 		}
 		acc := conf.getAccount(options.PasswordFile)
-		switch acc.GetAccountType() {
-		case interfaces.EthAccountType:
-			abi.SetRpcUrl(conf.EthRpcUrls)
-		case interfaces.NeoAccountType:
-			neo.SetRpcUrl(conf.NeoRpcUrls)
-			if neo.NeoEndpoint == "" {
-				AbortWithString("None of the neo_rpc_urls is responding")
-			}
-		default:
-			AbortWithString("unknown account type")
-		}
-
 		req := upload.Request{
 			options.UploadGroup.File,
 			"",
@@ -291,16 +279,29 @@ func (conf *Configuration) getAccount(passwordFile *string) interfaces.IAccount 
 		password = GetPassword("Wallet", false)
 	}
 
-	account, err := account.NewIAccount(conf.WalletPath, password)
+	acc, err := account.NewIAccount(conf.WalletPath, password)
 	Abort(err)
-	userName, err := account.GetUserName()
-	Abort(err)
+	switch acc.GetAccountType() {
+	case interfaces.EthAccountType:
+		if len(conf.EthRpcUrls) == 0 {
+			AbortWithString("eth_rpc_urls needs to be filled in")
+		}
+		rpc_utils.SetRpcUrl(conf.EthRpcUrls)
+	case interfaces.NeoAccountType:
+		neo.SetRpcUrl(conf.NeoRpcUrls)
+		if neo.NeoEndpoint == "" {
+			AbortWithString("None of the neo_rpc_urls is responding")
+		}
+	default:
+		AbortWithString("unknown account type")
+	}
+	userName, err := acc.GetUserName()
 	if userName == "" {
 		// Need to register
 		userName = PromptForInput("You need to register a user name.\nUser name:")
-		err := account.RegisterUserName(userName)
+		err := acc.RegisterUserName(userName)
 		Abort(err)
 	}
 	fmt.Printf("User name is %q\n", userName)
-	return account
+	return acc
 }

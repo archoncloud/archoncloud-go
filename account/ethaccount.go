@@ -118,13 +118,13 @@ func (account *EthAccount) RegisterUserName(userName string) error {
 	fmt.Println("Tx ID:", txID)
 	fmt.Println("Waiting for registration...")
 	if err == nil {
-		registered, completed := WaitForCompletion(8*time.Second, 2*time.Minute, func() (interface{}, bool) {
-			ok, err := account.GetUserName()
-			return ok, err != nil
+		uName, completed := WaitForCompletion(8*time.Second, 2*time.Minute, func() (interface{}, bool) {
+			user, err := account.GetUserName()
+			return user, err != nil
 		})
 		if !completed {
 			err = errors.New("registration timed out. Blockchain is busy. Try again later")
-		} else if !registered.(bool) {
+		} else if uName.(string) != userName {
 			err = errors.New("registration failed")
 		}
 	}
@@ -217,6 +217,7 @@ func (acc *EthAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 	}
 
 	uplPar := client_utils.UploadParams{
+		Wallet:             *acc.keyset,
 		ServiceDuration:    1, // months, has no meaning for now
 		MinSLARequirements: 1, // has no meaning for now
 		UploadPmt:          uint64(price),
@@ -228,9 +229,9 @@ func (acc *EthAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 		CompressionType:    fc.CompressionType,
 		ShardContainerType: uint8(shardContainerType),
 		ErasureCodeType:    uint8(erasureCodeType),
-		SPsToUploadTo:      sps.EthAddresses(),
-		CustomField:        1,
+		CustomField:        0,
 		ContainerSignature: *NewArchonSignature(fc.Signature),
+		SPsToUploadTo:      sps.EthAddresses(),
 	}
 	txId, err = client_utils.ProposeUpload(&uplPar)
 	if err == nil {
