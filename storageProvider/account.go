@@ -17,8 +17,6 @@ import (
 	"time"
 )
 
-const SPVersion = "0.25"
-
 // For info only
 var StartTime time.Time
 var PortsUsed []int
@@ -125,7 +123,7 @@ func SetupAccountAndDht() {
 	if len(apiPorts) > 1 {
 		urls.HttpsPort = strconv.Itoa(apiPorts[1])
 	}
-	LogInfo.Printf("Storage Provider V%s starting\n", SPVersion)
+	LogInfo.Printf("Storage Provider V%s starting\n", Version)
 
 	var multiAddrString string
 	if conf.Host == "localhost" {
@@ -208,7 +206,7 @@ func SetupAccountAndDht() {
 		if len(config.NeoRpcUrls) == 0 {
 			AbortWithString("The neo_rpc_urls section in the config file cannot be empty")
 		}
-		neo.NeoEndpoint = FirstLiveUrl(config.NeoRpcUrls)
+		neo.SetRpcUrl(config.NeoRpcUrls)
 		if neo.NeoEndpoint == "" {
 			AbortWithString("None of the neo_rpc_urls is responding")
 		}

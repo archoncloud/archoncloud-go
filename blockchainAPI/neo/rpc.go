@@ -34,18 +34,23 @@ func RpcUrls() []string {
 	// Defaults
 	// "http://127.0.0.1:10002"
 	//"http://13.57.14.131:20332",
-	return []string{"http://seed3.ngd.network:20332", "http://seed1.ngd.network:20332"}
+	return []string{"http://seed3.ngd.network", "http://seed1.ngd.network"}
 }
 
 func Client() *rpc.RpcClient {
 	clientOnce.Do(func() {
 		if NeoEndpoint == "" {
-			NeoEndpoint = FirstLiveUrl(RpcUrls())
+			SetRpcUrl(RpcUrls())
 		}
 		client = rpc.NewClient(NeoEndpoint)
 	})
 	return client
 }
+
+func SetRpcUrl(rpcUrls []string) {
+	NeoEndpoint = FirstLiveUrl(rpcUrls, 20332)
+}
+
 
 func ArchonContractVersion() string {
 	r, _, err := callArchonContract("version", nil, nil, true)

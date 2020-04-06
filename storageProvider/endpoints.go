@@ -19,7 +19,7 @@ import (
 func infoHandler(w http.ResponseWriter, r *http.Request) {
 	zone, offset := time.Now().Zone()
 	httpInfo2(w, r, fmt.Sprintf("Archon Storage Provider V%s\nUp since %v\nTime zone: %s (%d)\n%s %s",
-		SPVersion, StartTime.Format(time.RFC1123),
+		Version, StartTime.Format(time.RFC1123),
 		zone, offset,
 		runtime.GOOS, runtime.GOARCH))
 }

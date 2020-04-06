@@ -82,12 +82,26 @@ func (x *DownloadCommand) Execute(args []string) error {
 	return nil
 }
 
-var isGenEthWalletCmd bool
-type genEthWalletCommand struct {
+type genEthWalletCommand struct {}
+func (x *genEthWalletCommand) Execute(args []string) error {
+	// Generate the wallet and return
+	account.GenerateNewWalletFile(interfaces.EthAccountType, false)
+	os.Exit(0)
+	return nil
 }
 
-func (x *genEthWalletCommand) Execute(args []string) error {
-	isGenEthWalletCmd = true
+type genNeoWalletCommand struct {}
+func (x *genNeoWalletCommand) Execute(args []string) error {
+	// Generate the wallet and return
+	account.GenerateNewWalletFile(interfaces.NeoAccountType, false)
+	os.Exit(0)
+	return nil
+}
+
+type versionCommand struct {}
+func (x *versionCommand) Execute(args []string) error {
+	fmt.Printf("V%s\n", Version)
+	os.Exit(0)
 	return nil
 }
 
@@ -112,23 +126,27 @@ func main() {
 		} `group:"Options for download"`
 	}
 
-	var uploadCommand UploadCommand
-	var downloadCommand DownloadCommand
-	var genEthWalletCmd genEthWalletCommand
-
 	parser := flags.NewParser(&options, flags.Default)
 	_, _ = parser.AddCommand("upload",
 		"Upload a file and get an Archon URL",
 		"",
-		&uploadCommand)
+		&UploadCommand{})
 	_, _ = parser.AddCommand("download",
 		"Download a file from an Archon URL",
 		"",
-		&downloadCommand)
+		&DownloadCommand{})
+	_, _ = parser.AddCommand("version",
+		"Print version and exit",
+		"",
+		&versionCommand{})
 	_, _ = parser.AddCommand("generateEthWalletFile",
 		"Generates a new Ethereum .json wallet file, with a new address",
 		"",
-		&genEthWalletCmd)
+		&genEthWalletCommand{})
+	_, _ = parser.AddCommand("generateNeoWalletFile",
+		"Generates a new Neo .json wallet file",
+		"",
+		&genNeoWalletCommand{})
 
 	if _, err := parser.Parse(); err != nil {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
@@ -136,12 +154,6 @@ func main() {
 		} else {
 			Abort(err)
 		}
-	}
-
-	if isGenEthWalletCmd {
-		// Generate the wallet and return
-		account.GenerateNewWalletFile( interfaces.EthAccountType, false)
-		os.Exit(0)
 	}
 
 	if !isDownload && !isUpload {
@@ -206,13 +218,9 @@ func main() {
 		acc := conf.getAccount(options.PasswordFile)
 		switch acc.GetAccountType() {
 		case interfaces.EthAccountType:
-			rpcEndpoint := FirstLiveUrl(conf.EthRpcUrls)
-			if rpcEndpoint == "" {
-				AbortWithString("None of the eth_rpc_urls is responding")
-			}
-			abi.SetRpcUrl(rpcEndpoint)
+			abi.SetRpcUrl(conf.EthRpcUrls)
 		case interfaces.NeoAccountType:
-			neo.NeoEndpoint = FirstLiveUrl(conf.NeoRpcUrls)
+			neo.SetRpcUrl(conf.NeoRpcUrls)
 			if neo.NeoEndpoint == "" {
 				AbortWithString("None of the neo_rpc_urls is responding")
 			}

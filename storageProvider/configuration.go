@@ -109,29 +109,33 @@ func (x *UnregisterCommand) Execute(args []string) error {
 }
 
 var isInfoCmd bool
-type infoCommand struct {
-}
+type infoCommand struct {}
 
 func (x *infoCommand) Execute(args []string) error {
 	isInfoCmd = true
 	return nil
 }
 
-var isGenEthWalletCmd bool
-type genEthWalletCommand struct {
-}
-
+type genEthWalletCommand struct {}
 func (x *genEthWalletCommand) Execute(args []string) error {
-	isGenEthWalletCmd = true
+	// Generate the wallet and return
+	account.GenerateNewWalletFile(interfaces.EthAccountType, showPassword)
+	os.Exit(0)
 	return nil
 }
 
-var isGenNeoWalletCmd bool
-type genNeoWalletCommand struct {
+type genNeoWalletCommand struct {}
+func (x *genNeoWalletCommand) Execute(args []string) error {
+	// Generate the wallet and return
+	account.GenerateNewWalletFile(interfaces.NeoAccountType, showPassword)
+	os.Exit(0)
+	return nil
 }
 
-func (x *genNeoWalletCommand) Execute(args []string) error {
-	isGenNeoWalletCmd = true
+type versionCommand struct {}
+func (x *versionCommand) Execute(args []string) error {
+	fmt.Printf("V%s\n", Version)
+	os.Exit(0)
 	return nil
 }
 
@@ -152,31 +156,30 @@ func ProcessArgs() {
 	parser := flags.NewParser(&options, flags.Default)
 	parser.SubcommandsOptional = true
 
-	var registerCmd RegisterCommand
-	var unregisterCmd UnregisterCommand
-	var infoCmd infoCommand
-	var genEthWalletCmd genEthWalletCommand
-	var genNeoWalletCmd genNeoWalletCommand
 	_, _ = parser.AddCommand("register",
 		"Register this storage provider. Reads data from registration.txt",
 		"",
-		&registerCmd)
+		&RegisterCommand{})
 	_, _ = parser.AddCommand("unregister",
 		"Unregister this storage provider and exit",
 		"",
-		&unregisterCmd)
+		&UnregisterCommand{})
 	_, _ = parser.AddCommand("info",
 		"Print network min ask info and exit",
 		"",
-		&infoCmd)
+		&infoCommand{})
+	_, _ = parser.AddCommand("version",
+		"Print version and exit",
+		"",
+		&versionCommand{})
 	_, _ = parser.AddCommand("generateEthWalletFile",
 		"Generates a new Ethereum .json wallet file",
 		"",
-		&genEthWalletCmd)
+		&genEthWalletCommand{})
 	_, _ = parser.AddCommand("generateNeoWalletFile",
 		"Generates a new Neo .json wallet file",
 		"",
-		&genNeoWalletCmd)
+		&genNeoWalletCommand{})
 
 	if remaining, err := parser.Parse(); err != nil {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
@@ -196,17 +199,6 @@ func ProcessArgs() {
 				InvalidArgs("unknown argument: " + remaining[0])
 			}
 		}
-	}
-
-	if isGenEthWalletCmd {
-		// Generate the wallet and return
-		account.GenerateNewWalletFile(interfaces.EthAccountType, showPassword)
-		os.Exit(0)
-	}
-	if isGenNeoWalletCmd {
-		// Generate the wallet and return
-		account.GenerateNewWalletFile(interfaces.NeoAccountType, showPassword)
-		os.Exit(0)
 	}
 
 	conf := GetSPConfiguration()
