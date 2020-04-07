@@ -29,7 +29,7 @@ func GetDownloadUrlsForShard(shard string, timeout time.Duration) (mergedUrls []
 			mergedUrls = append(mergedUrls,url)
 		}
 	}
-	LogDebug.Printf("GetDownloadUrlsForShard returns %v", mergedUrls)
+	LogDebug.Printf("GetDownloadUrlsForShard %s returns %v", shard, mergedUrls)
 	return
 }
 
@@ -83,7 +83,6 @@ func GetSPProfiles(layer permission_layer.PermissionLayerID) (StorageProviders, 
 }
 
 func AnnounceToDht(shard, layerId string) (err error) {
-	LogTrace.Printf("Calling Stored for %q (%s)\n", shard, layerId)
 	layer := dhtp.NewPermissionLayer(layerId)
 	if layer == nil {
 		err = fmt.Errorf("invalid layer %q", layerId)
@@ -91,6 +90,7 @@ func AnnounceToDht(shard, layerId string) (err error) {
 	}
 	v, err := layer.NewVersionData()
 	if err != nil {return}
+	LogDebug.Printf("Calling Stored for %s, args: %q %v\n", layerId, shard, v)
 	err = dhtInstance.Stored(shard, v)
 	return
 }
