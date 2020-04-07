@@ -16,9 +16,9 @@ import (
 var dhtInstance *dht.ArchonDHTs
 
 // GetDownloadUrlsForShard returns download URLs that have store this shard. Ignores errors
-func GetDownloadUrlsForShard(shard string, timeout time.Duration) (mergedUrls []string) {
+func GetDownloadUrlsForShard(shard string) (mergedUrls []string, err error) {
 	u := make(map[string]bool)
-	uMap, err := dhtInstance.GetUrlsOfNodesHoldingKeysFromAllLayers([]string{shard}, timeout)
+	uMap, err := dhtInstance.GetUrlsOfNodesHoldingKeysFromAllLayers([]string{shard}, 3*time.Second)
 	if err == nil {
 		for _, urls := range uMap {
 			for _, url := range urls {
@@ -28,8 +28,8 @@ func GetDownloadUrlsForShard(shard string, timeout time.Duration) (mergedUrls []
 		for url, _ := range u {
 			mergedUrls = append(mergedUrls,url)
 		}
+		LogDebug.Printf("GetDownloadUrlsForShard %s returns %v", shard, mergedUrls)
 	}
-	LogDebug.Printf("GetDownloadUrlsForShard %s returns %v", shard, mergedUrls)
 	return
 }
 

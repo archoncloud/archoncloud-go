@@ -7,7 +7,6 @@ import (
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/dustin/go-humanize"
-	"github.com/pkg/errors"
 	"net/http"
 	fp "path/filepath"
 	"runtime"
@@ -83,15 +82,13 @@ func retrieveHandler(w http.ResponseWriter, r *http.Request) {
 		aUrl.String(),
 		make(map[int][]string),
 	}
-	timeout := 8*time.Second
-	start := time.Now()
 	// TODO: maybe do this in parallel
 	for ix, sh := range totalShards {
-		since := time.Since(start)
-		if since > timeout {
-			httpErr(w, r, errors.New("timeout"), http.StatusRequestTimeout )
+		urls, err := GetDownloadUrlsForShard(sh)
+		if err != nil {
+			httpBadRequest(w, r, err)
+			return
 		}
-		urls := GetDownloadUrlsForShard(sh, timeout-since)
 		if len(urls) > 0 {
 			response.Urls[ix] = urls
 		}
