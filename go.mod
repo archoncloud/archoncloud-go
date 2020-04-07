@@ -1,6 +1,6 @@
 module github.com/archoncloud/archoncloud-go
 
-go 1.13
+go 1.14
 
 require (
 	github.com/archoncloud/archon-dht v0.0.24
