@@ -257,7 +257,7 @@ func getTxResponse(txId string) (log *rpc.GetApplicationLogResponse, notificatio
 	}
 	e := r.Result.Executions[0]
 	// for debugging only
-	fmt.Println("Gas consumed:", e.GasConsumed)
+	LogDebug.Println("Gas consumed:", e.GasConsumed)
 	if e.VMState == "FAULT" {
 		err = errors.New("Neo VM Fault")
 		return
