@@ -128,7 +128,7 @@ func SetupAccountAndDht() {
 	var multiAddrString string
 	if conf.Host == "localhost" {
 		// This is for debugging only
-		multiAddrString = "/ip4/192.168.1.161"
+		multiAddrString = "/ip4/" + Localhost
 	} else {
 		hostMa, err := GetMultiAddressOf(conf.Host)
 		Abort(err)

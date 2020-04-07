@@ -8,6 +8,7 @@ import (
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/archoncloud/archon-dht/permission_layer"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -134,27 +135,16 @@ func GetUploadSps(needed int, acc interfaces.IAccount) (sps StorageProviders, er
 	return
 }
 
-// GetUploadSpsLocal is for debugging only, using an SP on localhost
-func GetUploadSpsLocal(u *Request) (sps StorageProviders, err error) {
-	sps = NewStorageProviders(0)
-	sp := SpProfile{
-		Urls:               Urls{
-			Host:      "localhost",
-			HttpPort:  "9000",
-			HttpsPort: "",
-		},
-		AvailableGigaBytes: 0,
-		PledgedGigaBytes:   11.1,
-		NodeId:             "?",
+// GetUploadSpsLocal is for debugging only, using as SP on localhost
+func GetUploadSpsLocal(acc interfaces.IAccount) (sps StorageProviders, err error) {
+	spsAll, err := currentSPs(acc)
+	if err != nil {return}
+	for _, sp := range spsAll {
+		if strings.Contains(sp.Urls.Host, "localhost") {
+			sp.Urls.Host = "127.0.0.1"
+			sps.Add(&sp)
+			return
+		}
 	}
-	// the min Ask is per MByte. Aiming for 0.04c / GByte -> 0.00004c / MByte
-	sp.MinAskPrice = u.UploaderAccount.HundredthOfCent()*4 / 1000
-	if u.UploaderAccount.GetAccountType() == interfaces.EthAccountType {
-		sp.Address = "0x8cf8611cfa222ffbcf6a762734aab200f40a4970"
-	} else {
-		// in Gas per MByte
-		sp.Address = "Aey8DHNKSQCrHTpVRK32fLsJtXkAtdzSbJ" //dev2
-	}
-	sps.Add(&sp)
 	return
 }
