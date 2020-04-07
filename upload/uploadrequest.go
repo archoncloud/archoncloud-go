@@ -93,8 +93,8 @@ func (u *Request) Upload() (downloadUrl string, price int64, err error) {
 	}
 
 	var sps StorageProviders
-	sps, err = GetUploadSpsLocal(u)
-	//sps, err = GetUploadSps(numTotal, u.UploaderAccount)
+	//sps, err = GetUploadSpsLocal(u)
+	sps, err = GetUploadSps(numTotal, u.UploaderAccount)
 	if err != nil {return}
 
 	if sps.Num() == 0 {
