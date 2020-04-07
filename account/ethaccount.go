@@ -342,6 +342,7 @@ func GetEthereumUploadTxInfo(txId string) (*interfaces.UploadTxInfo, error) {
 		UserName: userName,
 	}
 	ui.PublicKey = append([]byte(nil), upTx.PublicKey[:]...)
+	LogInfo.Println(txId, upTx.PublicKey)
 	ui.FileContainerType = upTx.InputDeconstructed.Params.FileContainerType
 	ui.Signature = append([]byte(nil), upTx.InputDeconstructed.ContainerSignature[:]...)
 	for _, validUploader := range upTx.InputDeconstructed.ArchonSPs {
