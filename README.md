@@ -1,6 +1,6 @@
 # Abstract
 
-This software provides blockchain based storage. **Ethereum** and **Neo** blockchains are supported.  
+This software provides blockchain based storage, the *Archon Blockchain Storage*. **Ethereum** and **Neo** blockchains are supported.  
 It builds two executables: the Storage Provider (archonSP) and upload/download client (archon).
 
 # Table of Contents
@@ -9,13 +9,9 @@ It builds two executables: the Storage Provider (archonSP) and upload/download c
    * [Build](#build)
    * [Usage](#usage)
       * [Storage Provider](#storage-provider)
-      * [Archon Cloud Service](#archon-cloud-service-1)
-         * [Upload](#upload-1)
-         * [Download](#download-1)
-   * [Architecture](#architecture)
-      * [Implementation Notes](#implementation-notes)
-         * [PUT vs POST for upload](#put-vs-post-for-upload)
-         * [Admin interface security](#admin-interface-security)
+      * [Client](#client)
+         * [Upload](#upload)
+         * [Download](#download)
 <!--te-->
 
 # Build
@@ -39,7 +35,7 @@ On Windows specify the output as archonSP.exe and archon.exe.
 # Usage
 ## Storage Provider
 
-The storage provider executable (archonSP or archonSP.exe) is a server that needs to run continually.  
+The storage provider executable (*archonSP* or *archonSP.exe*) is a server that needs to run continually.  
 Best is placed in a separate folder. When first started will create several sub-folder and a default configuration file `archonSP.config`.  
 This file has some items that will need to be changed to fit your setup.  
 Many of these can be set from the command line. Start with `--help` to see what they are. Once entered, they will be remembered in the config file and don't need to be entered again.  
@@ -52,59 +48,32 @@ These are:
 - `eth_rpc_urls`: Only needed if you entered an Ethereum wallet. One or more URLs that provide an Ethereum RPC service. Enter the one you want of use. Infura is one such provider of RPC connectivity.  
 - `neo_rpc_urls`:  Only needed if you entered a Neo wallet. One or more URLs that provide a NEO RPC service. The config file will be populated with defaults, but you can change as needed.  
 - `bootstrap_peers`, `eth_bootstrap_peers`, `neo_bootstrap_peers`: These are the DHT bootstraps. Best to leave as they are, but can be changed if you know what you are doing.  
+
+On first run, a `registration.txt` file is also created with default entries.  
+This will be used to register with the blockchain. Fill in the empty items with a text editor.  
+The most important are the min ask values `GasPerGByte` and `WeiPerByte`. These will be used by the network when picking storage providers to upload to. And also, these are values that will compute your pay for an upload.  
+Note that for Neo, the pay is in *CGAS*, not *GAS*, but *CGAS* is convertible one to one to *GAS*.
+Once registered, you can re-register at a later time with different values, if needed.
+
+# Client
+
+The client executable (*archon* or *archon.exe*) can be used for an upload or download of a file to the Archon Blockchain Storage.  
+Start with `--help` to see commands and options.
+Once entered, options will be remembered in the config file, `archon.config`.  
+You will need an Ethereum or Neo wallet file, depending on which blockchain storage providers you wish to use.
+The config file is a JSON text file that can be edited with a text editor.  
+There are two items in the file that can only be edited with an editor (no command line options):  
+- `eth_rpc_urls`: Only needed if you entered an Ethereum wallet. One or more URLs that provide an Ethereum RPC service. Enter the one you want of use. Infura is one such provider of RPC connectivity.  
+- `neo_rpc_urls`:  Only needed if you entered a Neo wallet. One or more URLs that provide a NEO RPC service. The config file will be populated with defaults, but you can change as needed.  
+
+There are several ways in which a file can be uploaded. This is controlled by the `encoding` option:
+- `none`: as a whole file, to one storage provider only
+- `mxor`: Archon proprietary sharding. Creates 6 shards, of which at least 2 are needed for reconstructing the whole file.  
+- `RSa`: Reed-Solomon archive optimized sharding. You specify the total number of shards and the required number.  
+- `RSb`: Reed-Solomon browser optimized sharding. You specify the total number of shards and the required number.
+
+`RSa` contains more metadata for allowing reconstruction or partially damaged shards. Aimed for long term archiving.  
+Sharded data will be uploaded so that different storage providers get each shard.  
+This allows the original file to be reconstructed even if some storage providers that stored the shards are offline or have disappeared.  
+Neo payments for upload are in *CGAS* not *GAS*. These are convertible one to one, but *CGAS* is the only payment form that works in Neo smart contracts.  
  
-
-### Download
-
-Files may be downloaded from the cloud with a simple HTTP GET request. For example, the cloud file `/stories/dracula.txt` may be downloaded from the shell with
-
-    $ wget https://acs.archon.cloud/stories/dracula.txt
-
-Using an AWS S3 client, the same file may be downloaded with
-
-    $ aws s3 cp --endpoint=https://acs.archon.cloud 's3://archon/stories/dracula.txt' ./dracula.txt
-
-For naive clients like curl and wget, the download response is an HTTP redirect to the document in one of the back-end clouds. For aws clients, the response is the document itself since aws clients do not handle the redirect.
-
-Files may be downloaded using either method regardless of the method used to upload them.
-
-# Architecture
-
-Below is a rough diagram of the Archon Centralized Endpoint system architecture.
-
-           +--------+                                   +-----------+
-           |  User  |                                   | Publisher |
-           +--------+                                   +-----------+
-               |^                                            |^
-               ||                                            || CDN URL
-           GET || Document                               PUT || Archon URL
-               ||                                            || IPFS URL
-               v|                                            v|
-    +-----------------------+        GET        /=============================\     +-------+
-    |          CDN          | ----------------> | Archon Centralized Endpoint | --> | Local |
-    |   edge.archon.cloud   | <---------------- |   ace|upload.archon.cloud   | <-- | Cache |
-    +-----------------------+     Document      \=============================/     +-------+
-                                                               ^
-                                                               |
-                                                        Upload | Download
-                                                               |
-                                                              / \
-                                                     +--------   --------+
-                                                     |                   |
-                                                     v                   v
-                                                 +~~~~~~~~+          +~~~~~~~+
-                                                 | Archon |          | IPFS  |
-                                                 | Cloud  |          | Cloud |
-                                                 +~~~~~~~~+          +~~~~~~~+
-
-## Implementation Notes
-
-### PUT vs POST for upload
-
-The system uses PUT rather than POST for uploading files because that's the correct method to use according to the HTTP specification (RFC 7231). The POST method is used to submit data (e.g. form contents) to the resource at the given URI. The PUT method, on the other hand, is used to create or replace the resource itself.
-
-### Admin interface security
-
-Only users having appropriate privileges may run admin commands. In offline mode, this means users who have read and/or write permissions on the account database file. In online mode, it is users on the localhost who have read permission on the key and certificate file used to encrypt communication between the `acectl` client and `aced` server. In either case, we rely on the Linux kernel to enforce these permissions.
-
-A new admin interface key and certificate is issued with each releases, so a client will not be able to communicate with a server from a different release.

@@ -28,11 +28,12 @@ const (
 )
 
 var (
-	LogDebug   *log.Logger
-	LogTrace   *log.Logger
-	LogInfo    *log.Logger
-	LogWarning *log.Logger
-	LogError   *log.Logger
+	// Defaults
+	LogTrace   *log.Logger = log.New(os.Stderr, "Trace ", log.LstdFlags)
+	LogDebug   *log.Logger = log.New(os.Stderr, "Debug ", log.LstdFlags)
+	LogInfo    *log.Logger = log.New(os.Stderr, "Info ", log.LstdFlags)
+	LogWarning *log.Logger = log.New(os.Stderr, "Warning ", log.LstdFlags)
+	LogError   *log.Logger = log.New(os.Stderr, "Error ", log.LstdFlags)
 )
 
 // logAndPrint logs and also writes to the standard output

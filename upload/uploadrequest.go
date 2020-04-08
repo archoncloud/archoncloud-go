@@ -66,7 +66,7 @@ func (u *Request) IsValid() (err error) {
 		err = fmt.Errorf("file %q does not exist", u.FilePath)
 	} else if u.UploaderAccount == nil {
 		err = errors.New("missing uploader account")
-	} else if u.Encoding != EncodingMxor &&  u.NumTotal < u.NumTotal {
+	} else if u.Encoding != EncodingMxor &&  u.NumTotal < u.NumRequired {
 		err = errors.New("total shards cannot be smaller than required shards")
 	}
 	return

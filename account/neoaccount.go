@@ -154,7 +154,7 @@ func (acc *NeoAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 		pars.SPsToUploadTo = append(pars.SPsToUploadTo, a)
 	}
 	pars.PublicKey = strings.TrimPrefix(BytesToString(acc.EcdsaPublicKeyBytes()), "0x")
-	txId, err = neo.ProposeUpload(acc.neoWallet, &pars, price, false)
+	txId, err = neo.ProposeUpload(acc.neoWallet, &pars, price, true)
 	return
 }
 
