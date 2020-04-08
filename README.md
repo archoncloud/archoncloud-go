@@ -1,7 +1,10 @@
 # Abstract
 
 This software provides blockchain based storage, the *Archon Blockchain Storage*. **Ethereum** and **Neo** blockchains are supported.  
-It builds two executables: the Storage Provider (archonSP) and upload/download client (archon).
+It builds two executables: the Storage Provider (**archonSP**) and upload/download client (**archon**).  
+Storage providers can sign up and offer storage capacity. Users of the Archon client can then upload and download files from this distributed storage.  
+Storage providers are paid in the currency of the blockchain. Users pay in the currency of the blockchain (for uploads, downloads are free).  
+Sharded files are first packed in a container that contains a signed hash, so that integrity can be verified.
 
 # Table of Contents
 <!--ts-->
@@ -22,7 +25,7 @@ It builds two executables: the Storage Provider (archonSP) and upload/download c
 
 Go compiler V1.14 or higher is needed.  
 Note that in order to use "make" on Windows you need to have MinGW installed.  
-The GOBIN environment variable will be used, if set.  
+The **GOBIN** environment variable will be used, if set.  
 Alternatively, you can build using the "go" command.  
 
     $ cd archoncloud-go/cmd/archonSP
@@ -55,13 +58,13 @@ The most important are the min ask values `GasPerGByte` and `WeiPerByte`. These 
 Note that for Neo, the pay is in *CGAS*, not *GAS*, but *CGAS* is convertible one to one to *GAS*.
 Once registered, you can re-register at a later time with different values, if needed.
 
-# Client
+## Client
 
 The client executable (*archon* or *archon.exe*) can be used for an upload or download of a file to the Archon Blockchain Storage.  
 Start with `--help` to see commands and options.
 Once entered, options will be remembered in the config file, `archon.config`.  
-You will need an Ethereum or Neo wallet file, depending on which blockchain storage providers you wish to use.
 The config file is a JSON text file that can be edited with a text editor.  
+You will need an Ethereum or Neo wallet file, depending on which blockchain storage providers you wish to use.
 There are two items in the file that can only be edited with an editor (no command line options):  
 - `eth_rpc_urls`: Only needed if you entered an Ethereum wallet. One or more URLs that provide an Ethereum RPC service. Enter the one you want of use. Infura is one such provider of RPC connectivity.  
 - `neo_rpc_urls`:  Only needed if you entered a Neo wallet. One or more URLs that provide a NEO RPC service. The config file will be populated with defaults, but you can change as needed.  
@@ -73,7 +76,21 @@ There are several ways in which a file can be uploaded. This is controlled by th
 - `RSb`: Reed-Solomon browser optimized sharding. You specify the total number of shards and the required number.
 
 `RSa` contains more metadata for allowing reconstruction or partially damaged shards. Aimed for long term archiving.  
-Sharded data will be uploaded so that different storage providers get each shard.  
-This allows the original file to be reconstructed even if some storage providers that stored the shards are offline or have disappeared.  
+Sharding allows the original file to be reconstructed even if some storage providers that stored the shards are offline or have disappeared.  
+Sharded data will be uploaded to different storage providers. The aim is that no storage providers hold more than one shard of a file. If not enough storage providers are present, some may get more than one shard.  
 Neo payments for upload are in *CGAS* not *GAS*. These are convertible one to one, but *CGAS* is the only payment form that works in Neo smart contracts.  
- 
+
+### Upload
+The first time you try the client it will ask for a user name and register this user name with the blockchain.
+Example upload:  
+
+    $ ./archon upload -f=mycat.jpg -e=mxor -t=named
+    
+After the upload completes, the client will print the Archon url for the stored file.   
+In this case it will be `arc://upl3.eth.n2:6/mycat.jpg`.  
+This was with the user name being "upl3". You need to store this string since this will be the only way to download the file.
+
+### Download
+Example download for the above Archon Url:  
+
+    $ ./archon download -u="arc://upl3.eth.n2:6/mycat.jpg"

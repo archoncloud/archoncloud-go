@@ -4,9 +4,9 @@ import (
 	"fmt"
 	dht "github.com/archoncloud/archon-dht/archon"
 	dhtp "github.com/archoncloud/archon-dht/dht_permission_layers"
-	"github.com/archoncloud/archon-dht/permission_layer"
-	"github.com/archoncloud/archoncloud-ethereum/client_utils"
+	pl "github.com/archoncloud/archon-dht/permission_layer"
 	"github.com/archoncloud/archoncloud-go/account"
+	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/dustin/go-humanize"
 	"sort"
@@ -33,7 +33,7 @@ func GetDownloadUrlsForShard(shard string) (mergedUrls []string, err error) {
 	return
 }
 
-func GetSPProfiles(layer permission_layer.PermissionLayerID) (StorageProviders, error) {
+func GetSPProfiles(layer pl.PermissionLayerID) (StorageProviders, error) {
 	sps := NewStorageProviders(0)
 	profiles, err := dhtInstance.GetArchonSPProfilesForMarketplace(layer)
 	if err != nil {return sps, err}
@@ -98,36 +98,79 @@ func AnnounceToDht(shard, layerId string) (err error) {
 // showInfo just displays marketplace info about the registered SPs and this SP
 func showInfo() {
 	if SPAccount.Eth != nil {
-		sps, err := GetSPProfiles(permission_layer.EthPermissionId)
-		Abort(err)
-		asks := make([]int64, 0)
-		for _, sp := range sps {
-			asks = append(asks, int64(sp.MinAskPrice))
-		}
-		l := len(asks)
-		if l == 0 {
-			fmt.Println("There are no SP accounts registered")
+		fmt.Println("Ethereum")
+		sps, err := GetSPProfiles(pl.EthPermissionId)
+		if err != nil {
+			fmt.Println(err)
 		} else {
-			sort.Slice(asks, func(i, j int) bool {
-				return asks[i] < asks[j]
-			})
-			fmt.Printf("\n\n\nFor Ethereum In Wei per Byte\n")
-			fmt.Printf("%d storage providers registered:\n", l)
-			fmt.Printf("min=%s median=%s max=%s\n",
-				account.WeiPerMByteString(asks[0]),
-				account.WeiPerMByteString(asks[l/2]),
-				account.WeiPerMByteString(asks[l-1]))
-
-			ourSP := sps.GetOfAddress(SPAccount.Eth.AddressString())
-			if ourSP == nil {
-				fmt.Println("this SP is not in the registered list")
+			asks := make([]int64, 0)
+			for _, sp := range sps {
+				asks = append(asks, int64(sp.MinAskPrice))
+			}
+			l := len(asks)
+			if l == 0 {
+				fmt.Println("There are no Eth SP accounts registered")
 			} else {
-				fmt.Printf("this SP=%s\n", account.WeiPerMByteString(ourSP.MinAskPrice))
-				balance, err := client_utils.GetEarnings(*SPAccount.Eth.GetEthAddress())
-				if err != nil {
-					fmt.Println("Can't get earnings of this SP")
+				sort.Slice(asks, func(i, j int) bool {
+					return asks[i] < asks[j]
+				})
+				fmt.Printf("\n\n\nFor Ethereum In Wei per Byte\n")
+				fmt.Printf("%d storage providers registered:\n", l)
+				fmt.Printf("min=%s median=%s max=%s\n",
+					account.WeiPerByteFromProfile(asks[0]),
+					account.WeiPerByteFromProfile(asks[l/2]),
+					account.WeiPerByteFromProfile(asks[l-1]))
+
+				ourSP := sps.GetOfAddress(SPAccount.Eth.AddressString())
+				if ourSP == nil {
+					fmt.Println("this SP is not in the registered list")
 				} else {
-					fmt.Printf("this SP earnings=%s\n", account.WeiString(balance.Int64()))
+					fmt.Printf("this SP=%s\n", account.WeiPerByteFromProfile(ourSP.MinAskPrice))
+					balance, err := SPAccount.Eth.GetEarnings()
+					if err != nil {
+						fmt.Println("Can't get earnings of this SP")
+					} else {
+						fmt.Printf("this SP earnings=%s\n", account.WeiString(balance))
+					}
+				}
+			}
+		}
+	}
+	if SPAccount.Neo != nil {
+		fmt.Println("Neo")
+		sps, err := GetSPProfiles(pl.NeoPermissionId)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			asks := make([]int64, 0)
+			for _, sp := range sps {
+				asks = append(asks, int64(sp.MinAskPrice))
+			}
+			l := len(asks)
+			if l == 0 {
+				fmt.Println("There are no Neo SP accounts registered")
+			} else {
+				sort.Slice(asks, func(i, j int) bool {
+					return asks[i] < asks[j]
+				})
+				fmt.Printf("\n\n\nFor Neo In CGAS per GigaByte\n")
+				fmt.Printf("%d storage providers registered:\n", l)
+				fmt.Printf("min=%s median=%s max=%s\n",
+					account.GasPerGByteFromProfile(asks[0]),
+					account.GasPerGByteFromProfile(asks[l/2]),
+					account.GasPerGByteFromProfile(asks[l-1]))
+
+				ourSP := sps.GetOfAddress(SPAccount.Neo.AddressString())
+				if ourSP == nil {
+					fmt.Println("this SP is not in the registered list")
+				} else {
+					fmt.Printf("this SP=%s\n", account.GasPerGByteFromProfile(ourSP.MinAskPrice))
+					balance, err := SPAccount.Neo.GetEarnings()
+					if err != nil {
+						fmt.Println("Can't get earnings of this SP")
+					} else {
+						fmt.Printf("this SP earnings=%s\n", neo.CgasString(balance))
+					}
 				}
 			}
 		}

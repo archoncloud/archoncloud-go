@@ -8,6 +8,7 @@ import (
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/archoncloud/archoncloud-go/shards"
+	"github.com/dustin/go-humanize"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ecrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/joeqian10/neo-gogogo/helper"
@@ -180,6 +181,10 @@ func (acc *NeoAccount) Verify(hash, signature, publicKey []byte) bool {
 	return Verify(acc,hash,signature,publicKey)
 }
 
+func (acc *NeoAccount) GetEarnings() (int64, error) {
+	return neo.GetCGASBalanceOf(acc.AddressString())
+}
+
 // --------------------- IAccount end -----------------------------------------------
 
 // walletPath may be relative (to exe folder) or absolute
@@ -268,4 +273,8 @@ func ToEcdsa(privateKey []byte) (ethKey *EthereumKey, err error) {
 	ethKey.PrivateKey = privateKey[0:32]
 	ethKey.PublicKey = publicKey[0:64]
 	return
+}
+
+func GasPerGByteFromProfile(gasPerMByte int64) string {
+	return humanize.CommafWithDigits(float64(gasPerMByte)*Kilo, 4)
 }

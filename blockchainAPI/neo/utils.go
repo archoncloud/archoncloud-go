@@ -46,7 +46,7 @@ func callArchonContract(method string, args []sc.ContractParameter, from *wallet
 	if waitForConfirm {
 		err = WaitForTransaction(txId)
 		if err != nil {return}
-		r, _, err2 := getTxResponse(txId)
+		r, _, err2 := getTxResponse(txId, true)
 		if r != nil {
 			log = &r.Result
 		}
@@ -245,7 +245,7 @@ func hexStringToString(s string) string {
 //	}
 //}
 
-func getTxResponse(txId string) (log *rpc.GetApplicationLogResponse, notification string, err error) {
+func getTxResponse(txId string, afterCall bool) (log *rpc.GetApplicationLogResponse, notification string, err error) {
 	r:= Client().GetApplicationLog(txId)
 	if r.HasError() {
 		err = errors.New(r.Error.Message)
@@ -257,7 +257,9 @@ func getTxResponse(txId string) (log *rpc.GetApplicationLogResponse, notificatio
 	}
 	e := r.Result.Executions[0]
 	// for debugging only
-	//LogDebug.Println("Gas consumed:", e.GasConsumed)
+	if afterCall {
+		//LogDebug.Println("Gas consumed:", e.GasConsumed)
+	}
 	if e.VMState == "FAULT" {
 		err = errors.New("Neo VM Fault")
 		return

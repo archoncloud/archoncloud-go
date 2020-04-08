@@ -46,6 +46,7 @@ type IAccount interface {
 	RegisterSP(*RegistrationInfo) (txId string, err error)
 	UnregisterSP() error
 	GetUploadTxInfo(txId string) (info *UploadTxInfo, err error)
+	GetEarnings() (int64, error)
 
 	// Utilities
 	// amount is in blockchain base (Wei/Gas)

@@ -50,7 +50,7 @@ type SpProfile struct {
 	// The following for permissioned only
 	Address		string `json:"address"`	// blockchain address
 	// in the currency of the layer, per MByte per month
-	// (for Eth: wei/Mbyte)
+	// (for Eth: Wei/MByte, for Neo: Gas/MByte)
 	MinAskPrice        int64   `json:"min_ask"`
 	AvailableGigaBytes float64 `json:"available_giga_bytes"`
 	PledgedGigaBytes	float64 `json:"pledged_giga_bytes"`

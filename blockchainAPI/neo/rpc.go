@@ -5,6 +5,7 @@ import (
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/joeqian10/neo-gogogo/helper"
+	"github.com/joeqian10/neo-gogogo/nep5"
 	"github.com/joeqian10/neo-gogogo/rpc"
 	"github.com/joeqian10/neo-gogogo/sc"
 	"github.com/joeqian10/neo-gogogo/wallet"
@@ -57,7 +58,6 @@ func SetRpcUrl(rpcUrls []string) {
 	}
 	NeoEndpoint = FirstLiveUrl(rpcUrls, port)
 }
-
 
 func ArchonContractVersion() string {
 	r, _, err := callArchonContract("version", nil, nil, true)
@@ -207,10 +207,9 @@ func ProposeUpload(wallet *wallet.Account, pars *UploadParamsForNeo, payment int
 }
 
 func GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
-	// 6 GAS
 	err = WaitForTransaction(txId)
 	if err != nil {return}
-	_, notification, err := getTxResponse(txId)
+	_, notification, err := getTxResponse(txId, false)
 	if err != nil {return}
 	if notification == "" {
 		err = errors.New("Notification is missing")
@@ -234,6 +233,15 @@ func GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
 		iPars.SPs = append(iPars.SPs, b.Bytes())
 	}
 	pInfo = &iPars
+	return
+}
+
+func GetCGASBalanceOf(address string) (bal int64, err error) {
+	n5h := nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint)
+	addr, err := helper.AddressToScriptHash(address)
+	if err != nil {return}
+	balU, err := n5h.BalanceOf(addr)
+	bal = int64(balU)
 	return
 }
 

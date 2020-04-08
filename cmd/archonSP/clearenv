@@ -1,2 +1,0 @@
-set GOBIN=$(pwd)
-set GOPATH=

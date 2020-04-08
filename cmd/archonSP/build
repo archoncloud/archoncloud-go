@@ -1,4 +1,0 @@
-cd ../src/archoncloud-go/cmd/archonSP
-git reset --hard
-git pull
-go install .

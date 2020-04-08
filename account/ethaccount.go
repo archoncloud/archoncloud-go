@@ -264,6 +264,11 @@ func (acc *EthAccount) Verify(hash, signature, publicKey []byte) bool {
 	return Verify(acc,hash,signature,publicKey)
 }
 
+func (acc *EthAccount) GetEarnings() (int64, error) {
+	bal, err := client_utils.GetEarnings(*acc.GetEthAddress())
+	return bal.Int64(), err
+}
+
 // --------------------- IAccount end -----------------------------------------------
 
 // walletPath may be relative (to exe folder, or absolute)
@@ -362,8 +367,8 @@ func WeiString(wei int64) string {
 	return humanize.CommafWithDigits(f, 0) + " Wei"
 }
 
-func WeiPerMByteString(weiPerByte int64) string {
-	return humanize.CommafWithDigits(float64(weiPerByte)/Mega, 4)
+func WeiPerByteFromProfile(weiPerMByte int64) string {
+	return humanize.CommafWithDigits(float64(weiPerMByte)/Mega, 4)
 }
 
 // GenerateNewEthWallet creates a new .json wallet file
