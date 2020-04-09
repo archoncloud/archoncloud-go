@@ -28,8 +28,7 @@ const (
 	addressToUserNameMap = "addressToUserName"	// Uploader
 )
 
-var client *rpc.RpcClient
-var neoEndpointOnce sync.Once
+var neoEndpointMtx sync.Mutex
 var neoEndpoint string
 
 func RpcUrls() []string {
@@ -37,28 +36,36 @@ func RpcUrls() []string {
 	return []string{"http://seed3.ngd.network", "http://seed1.ngd.network"}
 }
 
-func NeoEndpoint() string {
-	neoEndpointOnce.Do(func() {
-		if neoEndpoint == "" {
-			SetRpcUrl(RpcUrls())
+func Client() *rpc.RpcClient {
+	return rpc.NewClient(neoEndpoint)
+}
+
+func SetRpcUrl(rpcUrls []string) string {
+	neoEndpointMtx.Lock()
+	defer neoEndpointMtx.Unlock()
+	if neoEndpoint == "" {
+		var port int
+		switch BuildConfig {
+		case Release:
+			port = 10333
+		case Beta:
+			port = 20332
+		case Debug:
+			neoEndpoint = "http://127.0.0.1:10002";
+			return neoEndpoint
+		default:
+			port = 0
 		}
-	})
+		if rpcUrls == nil {
+			rpcUrls = RpcUrls()
+		}
+		neoEndpoint = FirstLiveUrl(rpcUrls, port)
+	}
 	return neoEndpoint
 }
 
-func Client() *rpc.RpcClient {
-	return rpc.NewClient(NeoEndpoint())
-}
-
-func SetRpcUrl(rpcUrls []string) {
-	var port int
-	switch BuildConfig {
-	case Release:	port = 10333
-	case Beta:		port = 20332
-	case Debug:	neoEndpoint = "http://127.0.0.1:10002"; return
-	default:		port = 0
-	}
-	neoEndpoint = FirstLiveUrl(rpcUrls, port)
+func GetRpcUrl() string {
+	return SetRpcUrl(nil)
 }
 
 func ArchonContractVersion() string {
@@ -193,16 +200,15 @@ func GetUserName(address string) (userName string, err error) {
 }
 
 // ProposeUpload returns transaction ID if successful
-func ProposeUpload(wallet *wallet.Account, pars *UploadParamsForNeo, payment int64, waitForConfirm bool) (txId string, err error) {
+func ProposeUpload(wallet *wallet.Account, pars *UploadParamsForNeo, payment, mBytes int64, waitForConfirm bool) (txId string, err error) {
 	// Consumes about 7 GAS
 	//fmt.Println(pars)
 	contractPars := []sc.ContractParameter{
 		*addressParam(wallet.Address),
-		*stringParam(I64ToA(payment)),	// could not make int param work
+		*addressParam(pars.SpAddress),
+		*stringParam(I64ToA(payment)),
+		*stringParam(I64ToA(mBytes)),
 		*byteArrayParam(pars.Bytes()),
-	}
-	for _, spa := range pars.SPsToUploadTo {
-		contractPars = append(contractPars,*addressParam(spa))
 	}
 
 	_, txId, err = CallArchonContract(
@@ -211,9 +217,6 @@ func ProposeUpload(wallet *wallet.Account, pars *UploadParamsForNeo, payment int
 		wallet,
 		waitForConfirm,
 	)
-	// For debugging only
-	//ret, _ := intFromResponseLog(l)
-	//fmt.Println("ret:", ret)
 	return
 }
 
@@ -235,20 +238,15 @@ func GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
 	iPars.PublicKey = StringToBytes(neoPars.PublicKey)
 	iPars.FileContainerType = uint8(neoPars.FileContainerType)
 	iPars.Signature = StringToBytes(neoPars.ContainerSignature)
-	for _, spa := range neoPars.SPsToUploadTo {
-		b, err2 := helper.AddressToScriptHash(spa)
-		if err2 != nil {
-			err = err2
-			return
-		}
-		iPars.SPs = append(iPars.SPs, b.Bytes())
-	}
+	b, err := helper.AddressToScriptHash(neoPars.SpAddress)
+	if err != nil {return}
+	iPars.SPs = append(iPars.SPs, b.Bytes())
 	pInfo = &iPars
 	return
 }
 
 func GetCGASBalanceOf(address string) (bal int64, err error) {
-	n5h := nep5.NewNep5Helper(CgasScriptHash(), NeoEndpoint())
+	n5h := nep5.NewNep5Helper(CgasScriptHash(), GetRpcUrl())
 	addr, err := helper.AddressToScriptHash(address)
 	if err != nil {return}
 	balU, err := n5h.BalanceOf(addr)

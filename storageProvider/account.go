@@ -206,8 +206,7 @@ func SetupAccountAndDht() {
 		if len(config.NeoRpcUrls) == 0 {
 			AbortWithString("The neo_rpc_urls section in the config file cannot be empty")
 		}
-		neo.SetRpcUrl(config.NeoRpcUrls)
-		if neo.NeoEndpoint == "" {
+		if neo.SetRpcUrl(config.NeoRpcUrls) == "" {
 			AbortWithString("None of the neo_rpc_urls is responding")
 		}
 		neoDht := dht.DHTConnectionConfig{

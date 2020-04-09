@@ -17,8 +17,8 @@ func archonCloudScript() string {
 	// Parameter List: 0710
 	// Return Type: 10
 	switch BuildConfig {
-	case Debug:	return "0x88aedb8c60fed5c565360fc823474c3fa91e81ac"	// local computer
-	case Beta:	return "0xf1494e3987e0c4f35695cde582c9feb905845644"	// testnet
+	case Debug:	return "0x14c2f62a9c27cebe9d384d1bc0d290f59d305caf"	// local computer
+	case Beta:	return "0x0c2f70c7f843a2f2901b9d1ed3059401109b74ca"	// testnet
 	default:	return ""
 	}
 }

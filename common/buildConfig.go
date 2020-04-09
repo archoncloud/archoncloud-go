@@ -6,5 +6,5 @@ const (
 	Debug
 )
 
-const BuildConfig = Debug
+const BuildConfig = Beta
 const Version = "1.0"

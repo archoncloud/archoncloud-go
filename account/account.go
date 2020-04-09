@@ -58,13 +58,6 @@ func IsEth(acc ifc.IAccount) bool {
 	return acc.GetAccountType() == ifc.EthAccountType;
 }
 
-/*
-	some industry standard prices:
-	big cloud providers (amazon, google, microsoft) 2c/GB/mo for storage and 9c/GB of egress bandwidth
-	smaller cloud competitors have around 0.5c/GB/mo for storage and 1c/GB - 4c/GB of egress bandwidth
-	Suppose we are aiming for 0.45c for upload
-*/
-
 func PrettyCurrencyForAccount(acc ifc.IAccount, amount int64) string {
 	var p string
 	switch acc.GetAccountType() {
@@ -88,7 +81,7 @@ func PrettyCurrencyForAccount(acc ifc.IAccount, amount int64) string {
 }
 
 func confirmPrice(acc ifc.IAccount, numBytes int64, sps StorageProviders, maxPayment int64) (price int64, err error) {
-	// For Eth, the price is in Wei/Byte
+	// For Eth, the price is in Wei for Neo in CGAS
 	price = sps.PriceOfUpload(numBytes)
 	if maxPayment > 0 {
 		if maxPayment < price {

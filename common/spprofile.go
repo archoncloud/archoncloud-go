@@ -161,8 +161,8 @@ func (sps *StorageProviders) PickRandom(needed int) StorageProviders {
 }
 
 // in currency of MinAskPrice, which depends on the blockchain
-// for Eth it is Wei, for Neo it is Gas
-func (sps *StorageProviders) PriceOfUpload(numBytes int64) int64 {
+// for Eth it is Wei, for Neo it is Gas(int8)
+func (sps *StorageProviders) PriceOfUpload(numBytes int64) (totalPrice int64) {
 	var minAskPerMByte []int64
 	var highest int64 = 0
 	for _, sp := range *sps {
@@ -172,9 +172,9 @@ func (sps *StorageProviders) PriceOfUpload(numBytes int64) int64 {
 			highest = a
 		}
 	}
-	mBytes := DivideRoundUp(uint64(numBytes),Mega)
+	mBytes := MegaBytes(numBytes)
 	// TODO: multiply by months, once it is part of registration
-	total := highest * int64(mBytes) * int64(sps.Num())
+	totalPrice = highest * mBytes * int64(sps.Num())
 
 /*	fmt.Println( "min ask per MByte", minAskPerMByte)
 	fmt.Println("highest", highest)
@@ -182,7 +182,7 @@ func (sps *StorageProviders) PriceOfUpload(numBytes int64) int64 {
 	fmt.Println("num MBytes", mBytes)
 	fmt.Println("total charged, Wei", total)
 */
-	return total
+	return
 }
 
 func (sps *StorageProviders) Remove(removeThis func(profile *SpProfile) bool) {

@@ -211,9 +211,7 @@ func (acc *EthAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 		shardSize = fc.Size
 	}
 	price, err = confirmPrice(acc, shardSize, sps, maxPayment)
-	if err != nil {
-		return
-	}
+	if err != nil {return}
 
 	uplPar := client_utils.UploadParams{
 		Wallet:             *acc.keyset,

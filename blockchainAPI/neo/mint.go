@@ -12,7 +12,7 @@ import (
 
 // MintCGasIfNeeded will exit/abort if not enough available
 func MintCGasIfNeeded(acc *wallet.Account, cgas int64) {
-	n5h := nep5.NewNep5Helper(CgasScriptHash(), NeoEndpoint())
+	n5h := nep5.NewNep5Helper(CgasScriptHash(), SetRpcUrl(nil))
 	addr, err := helper.AddressToScriptHash(acc.Address)
 	Abort(err)
 	bal, err := n5h.BalanceOf(addr)
@@ -36,7 +36,7 @@ func MintCGasIfNeeded(acc *wallet.Account, cgas int64) {
 }
 
 func MintCGas(acc *wallet.Account, cgas float64) (err error) {
-	n5h := nep5.NewNep5Helper(CgasScriptHash(), NeoEndpoint())
+	n5h := nep5.NewNep5Helper(CgasScriptHash(), GetRpcUrl())
 	cgh := (*nep5.CgasHelper)(n5h)
 	txId, err := cgh.MintTokens(acc,cgas)
 	if err != nil {return}

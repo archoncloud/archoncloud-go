@@ -37,7 +37,7 @@ func CallArchonContract(method string, args []sc.ContractParameter, from *wallet
 	sb := sc.NewScriptBuilder()
 	sb.MakeInvocationScript(archonCloudScriptHash().Bytes(), method, args)
 	script := sb.ToArray()
-	tb := tx.NewTransactionBuilder(NeoEndpoint())
+	tb := tx.NewTransactionBuilder(GetRpcUrl())
 	gas, err := tb.GetGasConsumed(script)
 	if err != nil {return}
 	if gas.GreaterThan(helper.Zero) {
