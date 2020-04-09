@@ -12,8 +12,10 @@ import (
 const RegistrationFileName = "registration.txt"
 const RegistrationVersion = 2
 
-func GetRegistrationInfo() (*interfaces.RegistrationInfo, error) {
-	regPath := DefaultToExecutable(RegistrationFileName)
+func GetRegistrationInfo(regPath string) (*interfaces.RegistrationInfo, error) {
+	if regPath == "" {
+		regPath = DefaultToExecutable(RegistrationFileName)
+	}
 	r := interfaces.RegistrationInfo{
 		"USA",
 		1,

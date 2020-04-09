@@ -115,7 +115,7 @@ func SetupAccountAndDht() {
 	ProcessArgs()
 	conf := GetSPConfiguration()
 
-	regInfo, err := account.GetRegistrationInfo()
+	regInfo, err := account.GetRegistrationInfo("")
 	Abort(err)
 	country, _ := gountries.New().FindCountryByAlpha(regInfo.CountryA3)
 	apiPorts := ApiPorts(conf)

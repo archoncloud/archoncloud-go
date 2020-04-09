@@ -7,6 +7,7 @@ import (
 	"github.com/joeqian10/neo-gogogo/helper"
 	"github.com/joeqian10/neo-gogogo/nep5"
 	"github.com/joeqian10/neo-gogogo/rpc"
+	"github.com/joeqian10/neo-gogogo/rpc/models"
 	"github.com/joeqian10/neo-gogogo/sc"
 	"github.com/joeqian10/neo-gogogo/wallet"
 	"github.com/pkg/errors"
@@ -27,25 +28,26 @@ const (
 	addressToUserNameMap = "addressToUserName"	// Uploader
 )
 
-var clientOnce sync.Once
 var client *rpc.RpcClient
-var NeoEndpoint string
+var neoEndpointOnce sync.Once
+var neoEndpoint string
 
 func RpcUrls() []string {
 	// Defaults
-	// "http://127.0.0.1:10002"
-	//"http://13.57.14.131:20332",
 	return []string{"http://seed3.ngd.network", "http://seed1.ngd.network"}
 }
 
-func Client() *rpc.RpcClient {
-	clientOnce.Do(func() {
-		if NeoEndpoint == "" {
+func NeoEndpoint() string {
+	neoEndpointOnce.Do(func() {
+		if neoEndpoint == "" {
 			SetRpcUrl(RpcUrls())
 		}
-		client = rpc.NewClient(NeoEndpoint)
 	})
-	return client
+	return neoEndpoint
+}
+
+func Client() *rpc.RpcClient {
+	return rpc.NewClient(NeoEndpoint())
 }
 
 func SetRpcUrl(rpcUrls []string) {
@@ -53,16 +55,16 @@ func SetRpcUrl(rpcUrls []string) {
 	switch BuildConfig {
 	case Release:	port = 10333
 	case Beta:		port = 20332
-	case Debug:		port = 10002
+	case Debug:	neoEndpoint = "http://127.0.0.1:10002"; return
 	default:		port = 0
 	}
-	NeoEndpoint = FirstLiveUrl(rpcUrls, port)
+	neoEndpoint = FirstLiveUrl(rpcUrls, port)
 }
 
 func ArchonContractVersion() string {
-	r, _, err := callArchonContract("version", nil, nil, true)
+	r, _, err := CallArchonContract("version", nil, nil, true)
 	if err == nil {
-		s, err := stringFromResponse(r)
+		s, err := StringFromResponse(r)
 		if err == nil {
 			return s
 		}
@@ -75,8 +77,10 @@ func IsSpRegistered(address string) (isReg bool) {
 	return err == nil && resp != ""
 }
 
-func UnregisterSp(sp *wallet.Account, nodeId string) (err error) {
-	_, _, err = callArchonContract(
+func UnregisterSp(sp *wallet.Account) (err error) {
+	nodeId, err := GetNodeId(sp.Address)
+	if err != nil {return}
+	_, _, err = CallArchonContract(
 		"unregisterStorageProvider",
 		[]sc.ContractParameter{*addressParam(sp.Address),*stringParam(nodeId)},
 		sp,
@@ -87,7 +91,7 @@ func UnregisterSp(sp *wallet.Account, nodeId string) (err error) {
 
 func RegisterSp(sp *wallet.Account, prof *NeoSpProfile) (txId string, err error) {
 	// Costs about 3.8 Gas
-	_, txId, err = callArchonContract(
+	_, txId, err = CallArchonContract(
 		"registerStorageProvider",
 		[]sc.ContractParameter{
 			*addressParam(sp.Address),
@@ -103,15 +107,22 @@ func RegisterSp(sp *wallet.Account, prof *NeoSpProfile) (txId string, err error)
 func GetSpProfile(address string) (*NeoSpProfile, error) {
 	resp, err := GetStorageValueFromAddress(spProfilesMap, address)
 	if err != nil {return nil, err}
-	profS := hexStringToString(resp)
+	profS := HexStringToString(resp)
 	prof, err := NewNeoSpProfile(profS)
 	if err != nil {return nil, err}
 	return prof, nil
 }
 
+func GetNodeId(address string) (nodeId string, err error) {
+	prof, err := GetSpProfile(address)
+	if err != nil {return}
+	nodeId = prof.NodeId
+	return
+}
+
 func GetSpMinAsk(address string) (minAsk int64, err error) {
 	// Useful for debugging only, otherwise GetSpProfile is faster
-	r, _, err := callArchonContract(
+	r, _, err := CallArchonContract(
 		"getStorageProviderMinAsk",
 		[]sc.ContractParameter{
 			*addressParam(address),
@@ -132,7 +143,7 @@ func GetSpAddress(nodeId string) (address string, err error) {
 
 func RegisterUserName(user *wallet.Account, userName string) (err error) {
 	// This costs 1.6 Gas
-	r, _, err := callArchonContract(
+	r, _, err := CallArchonContract(
 		"registerUserName",
 		[]sc.ContractParameter{
 			*addressParam(user.Address),
@@ -153,7 +164,7 @@ func RegisterUserName(user *wallet.Account, userName string) (err error) {
 }
 
 func UnregisterUserName(user *wallet.Account) (err error) {
-	r, _, err := callArchonContract(
+	r, _, err := CallArchonContract(
 		"unregisterUserName",
 		[]sc.ContractParameter{
 			*addressParam(user.Address),
@@ -176,7 +187,7 @@ func UnregisterUserName(user *wallet.Account) (err error) {
 func GetUserName(address string) (userName string, err error) {
 	s, err := GetStorageValueFromAddress(addressToUserNameMap, address)
 	if s != "" {
-		userName = hexStringToString(s)
+		userName = HexStringToString(s)
 	}
 	return
 }
@@ -194,7 +205,7 @@ func ProposeUpload(wallet *wallet.Account, pars *UploadParamsForNeo, payment int
 		contractPars = append(contractPars,*addressParam(spa))
 	}
 
-	_, txId, err = callArchonContract(
+	_, txId, err = CallArchonContract(
 		"proposeUpload",
 		contractPars,
 		wallet,
@@ -237,7 +248,7 @@ func GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
 }
 
 func GetCGASBalanceOf(address string) (bal int64, err error) {
-	n5h := nep5.NewNep5Helper(cgasScriptHash(), NeoEndpoint)
+	n5h := nep5.NewNep5Helper(CgasScriptHash(), NeoEndpoint())
 	addr, err := helper.AddressToScriptHash(address)
 	if err != nil {return}
 	balU, err := n5h.BalanceOf(addr)
@@ -280,6 +291,21 @@ func WaitForTransaction(txId string) error {
 	}
 	return fmt.Errorf("timed out waiting for %s", txId)
 }
+
+func GetTxResponse(txId string, afterCall bool) (log *models.RpcApplicationLog, err error) {
+	err = WaitForTransaction(txId)
+	if err != nil {return}
+	r, _, err2 := getTxResponse(txId, afterCall)
+	if r != nil {
+		log = &r.Result
+	}
+	if err2 != nil {
+		err = err2
+		return
+	}
+	return
+}
+
 
 func GetBlockHeight() (ret string, err error) {
 	resp := Client().GetBlockCount()

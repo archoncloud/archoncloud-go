@@ -3,7 +3,6 @@ package account
 import (
 	"crypto/ecdsa"
 	"fmt"
-	dht "github.com/archoncloud/archon-dht/archon"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
@@ -104,22 +103,16 @@ func (acc *NeoAccount) IsSpRegistered() bool {
 }
 
 func (acc *NeoAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, err error) {
-	prof := new(neo.NeoSpProfile)
-	// The contract stores Gas per MByte
-	ma := helper.Fixed8FromFloat64(r.Neo.GasPerGigaByte/Kilo)
-	prof.MinAsk = ma.Value
-	prof.CountryA3 = r.CountryA3
-	prof.PledgedStorage = int64(r.PledgedGigaBytes*Giga)
-	prof.NodeId, err = acc.GetNodeId()
+	prof, err := neo.NewNeoSpProfileFromReg(r)
+	if err != nil {return}
+	prof.NodeId, err = interfaces.GetNodeId(acc)
 	if err != nil {return}
 	txId, err = neo.RegisterSp(acc.neoWallet, prof)
 	return
 }
 
 func (acc *NeoAccount) UnregisterSP() error {
-	nodeId, err := acc.GetNodeId()
-	if err != nil {return err}
-	return neo.UnregisterSp(acc.neoWallet, nodeId)
+	return neo.UnregisterSp(acc.neoWallet)
 }
 
 func (acc *NeoAccount) GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
@@ -231,11 +224,8 @@ func GasToInt64(gas float64) int64 {
 	return helper.Fixed8FromFloat64(gas).Value
 }
 
-func (acc *NeoAccount) GetNodeId() (nodeId string, err error) {
-	nId, err := dht.GetNodeID(interfaces.GetSeed(acc))
-	if err != nil {return}
-	nodeId = nId.Pretty()
-	return
+func (acc *NeoAccount) GetWallet() *wallet.Account {
+	return acc.neoWallet
 }
 
 // GenerateNewNeoWallet creates a new .json wallet file

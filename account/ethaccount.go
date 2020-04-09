@@ -11,12 +11,11 @@ import (
 	"strings"
 	"time"
 
-	dht "github.com/archoncloud/archon-dht/archon"
 	"github.com/archoncloud/archoncloud-ethereum/client_utils"
 	"github.com/archoncloud/archoncloud-ethereum/register"
 	"github.com/archoncloud/archoncloud-ethereum/wallet"
 	. "github.com/archoncloud/archoncloud-go/common"
-	"github.com/archoncloud/archoncloud-go/interfaces"
+	ifc "github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/dustin/go-humanize"
 	ecrypto "github.com/ethereum/go-ethereum/crypto"
@@ -46,8 +45,8 @@ const (
 )
 
 // --------------------- IAccount start -----------------------------------------------
-func (acc *EthAccount) GetAccountType() interfaces.AccountType {
-	return interfaces.EthAccountType
+func (acc *EthAccount) GetAccountType() ifc.AccountType {
+	return ifc.EthAccountType
 }
 
 func (account *EthAccount) BlockchainName() string {
@@ -138,8 +137,8 @@ func (acc *EthAccount) IsSpRegistered() (isRegistered bool) {
 	return
 }
 
-func (acc *EthAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, err error) {
-	nodeId, err := dht.GetNodeID(interfaces.GetSeed(acc))
+func (acc *EthAccount) RegisterSP(r *ifc.RegistrationInfo) (txId string, err error) {
+	nodeId, err := ifc.GetNodeId(acc)
 	if err != nil {
 		return
 	}
@@ -158,7 +157,7 @@ func (acc *EthAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, 
 		MinAskPrice:    uint64(r.Ethereum.WeiPerByte * Mega),
 		Stake:          uint64(r.Ethereum.EthStake * EthToWei),
 		HardwareProof:  [32]byte{},
-		NodeID:         nodeId.Pretty(),
+		NodeID:         nodeId,
 	}
 	for i := 0; i < 32; i++ {
 		par.HardwareProof[i] = byte(rand.Intn(256))
@@ -173,7 +172,7 @@ func (acc *EthAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, 
 	}
 
 	LogInfo.Printf("Register transaction ID=%s\nNode ID=%s", txId, par.NodeID)
-	err = interfaces.WaitForRegUnreg(acc, true, 3*time.Minute)
+	err = ifc.WaitForRegUnreg(acc, true, 3*time.Minute)
 	return
 }
 
@@ -184,12 +183,12 @@ func (acc *EthAccount) UnregisterSP() (err error) {
 	txId, err := register.UnregisterSP(par)
 	if err == nil {
 		LogInfo.Printf("Unregister transaction ID=%s\n", txId)
-		err = interfaces.WaitForRegUnreg(acc, false, 3*time.Minute)
+		err = ifc.WaitForRegUnreg(acc, false, 3*time.Minute)
 	}
 	return
 }
 
-func (acc *EthAccount) GetUploadTxInfo(txId string) (info *interfaces.UploadTxInfo, err error) {
+func (acc *EthAccount) GetUploadTxInfo(txId string) (info *ifc.UploadTxInfo, err error) {
 	return GetEthereumUploadTxInfo(txId)
 }
 
@@ -322,7 +321,7 @@ func PrivateKeyFromString(hexkey string) (*ecdsa.PrivateKey, error) {
 }
 
 // GetEthereumUploadTxInfo returns info needed to verify the transaction on the SP side
-func GetEthereumUploadTxInfo(txId string) (*interfaces.UploadTxInfo, error) {
+func GetEthereumUploadTxInfo(txId string) (*ifc.UploadTxInfo, error) {
 	txHash := StringToBytes(txId)
 	if txHash == nil {
 		return nil, fmt.Errorf("transaction hash in not a hex string")
@@ -342,7 +341,7 @@ func GetEthereumUploadTxInfo(txId string) (*interfaces.UploadTxInfo, error) {
 	} else {
 		userName = string(un[:])
 	}
-	ui := interfaces.UploadTxInfo{
+	ui := ifc.UploadTxInfo{
 		TxId:     txId,
 		UserName: userName,
 	}
