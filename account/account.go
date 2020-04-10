@@ -163,7 +163,15 @@ func ProposeUpload(acc ifc.IAccount, fc *shards.FileContainer, s *shards.ShardsC
 		return ea.ProposeUpload(fc,s, a, sps, maxPayment)
 	case ifc.NeoAccountType:
 		na := acc.(*NeoAccount)
-		return na.ProposeUpload(fc,s, a, sps, maxPayment)
+		txIds, price2, err2 := na.ProposeUpload(fc,s, a, sps, maxPayment)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		price = price2
+		if len(sps) == 1 {
+			txId = txIds[sps[0].Address]
+		}
 	}
 	err = errors.New("unknown account type")
 	return

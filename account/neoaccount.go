@@ -124,7 +124,7 @@ func (acc *NeoAccount) IsTxAccepted(txId string) bool {
 	return accepted
 }
 
-func (acc *NeoAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsContainer, a *ArchonUrl, sps StorageProviders, maxPayment int64) (txId string, totalPrice int64, err error) {
+func (acc *NeoAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsContainer, a *ArchonUrl, sps StorageProviders, maxPayment int64) (txIds map[string]string, totalPrice int64, err error) {
 	var shardSize int64	// this could also be a whole file
 	if s != nil {
 		shardSize = s.GetShardNumBytes()
@@ -144,10 +144,16 @@ func (acc *NeoAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 	// totalPrice is assumed an exact multiple
 	spPayment := totalPrice / int64(len(sps))
 	mBytes := MegaBytes(shardSize)
+	txIds = make(map[string]string)
 	for _, sp := range sps {
 		// For Neo: one transaction per SP in order to stay in free tier
 		pars.SpAddress = sp.Address
-		_, err = neo.ProposeUpload(acc.neoWallet, &pars, spPayment, mBytes, false)
+		txId, err2 := neo.ProposeUpload(acc.neoWallet, &pars, spPayment, mBytes, false)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		txIds[sp.Address] = txId
 	}
 	return
 }
