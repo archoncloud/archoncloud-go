@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/archoncloud/archoncloud-go/account"
 	. "github.com/archoncloud/archoncloud-go/common"
+	ifs "github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/pkg/errors"
 	"io"
@@ -59,21 +60,40 @@ func (u *Request) shardedUpload(a *ArchonUrl, sps StorageProviders) (price int64
 		a.Path = fileContainer.Shards.GetOriginDataHashString()
 	}
 	// New proposed upload transaction
-	// Note: in the current design all of these sps will be paid, regardless if they will be used
-	// during the upload
-	txid, price, err := account.ProposeUpload(u.UploaderAccount, fileContainer, fileContainer.Shards, a, sps, u.MaxPayment)
-	if err == nil {
-		// Upload all the shards
-		err = u.uploadNeededShards(txid, fileContainer.Shards, sps)
+	var txIds map[string]string
+	switch u.UploaderAccount.GetAccountType() {
+	case ifs.EthAccountType:
+		var txId string
+		txId, price, err = account.ProposeUpload(u.UploaderAccount, fileContainer, fileContainer.Shards, a, sps, u.MaxPayment)
 		if err == nil {
-			fmt.Println("Upload transaction ID:", txid)
+			// Upload all the shards
+			for _, sp := range sps {
+				txIds[sp.Address] = txId
+			}
+			err = u.uploadNeededShards(txIds, fileContainer.Shards, sps)
+			if err == nil {
+				fmt.Println("Upload transaction ID:", txId)
+			}
 		}
+	case ifs.NeoAccountType:
+		neoAcc := u.UploaderAccount.(*account.NeoAccount)
+		txIds, price, err = neoAcc.ProposeUpload(fileContainer, fileContainer.Shards, a, sps, u.MaxPayment)
+		if err != nil {return}
+		err = u.uploadNeededShards(txIds, fileContainer.Shards, sps)
+		if err == nil {
+			fmt.Println("Upload transaction IDs:")
+			for _, tx := range txIds {
+				fmt.Println("   ", tx)
+			}
+		}
+	default:
+		err = fmt.Errorf("unknown account type")
 	}
 	return
 }
 
 // uploadNeededShards uploads the shards in parallel to sps
-func  (u *Request) uploadNeededShards(txid string, s *shards.ShardsContainer, sps StorageProviders) (err error) {
+func  (u *Request) uploadNeededShards(txIds map[string]string, s *shards.ShardsContainer, sps StorageProviders) (err error) {
 	n := s.GetNumShards()
 	shardsToDo := make([]int, n)
 	for i := 0; i < s.GetNumShards(); i++ {
@@ -98,7 +118,7 @@ func  (u *Request) uploadNeededShards(txid string, s *shards.ShardsContainer, sp
 		todo := len(uploads)
 		uchan := make(chan *shardUpload, todo)
 		for _, shu := range uploads {
-			go u.postShard(shu, txid, bp, uchan, u.PreferHttp)
+			go u.postShard(shu, txIds[shu.spProfile.Address], bp, uchan, u.PreferHttp)
 		}
 
 		// Wait for this set to respond

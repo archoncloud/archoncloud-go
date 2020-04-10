@@ -231,6 +231,8 @@ github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht
 github.com/joeqian10/neo-gogogo v0.0.0-20200313035100-69c0def2dfc4/go.mod h1:1fVDp4U1ROZQBRIooecbGNHHJpfs3bG9528sqlZ096g=
 github.com/joeqian10/neo-gogogo v0.0.0-20200331092409-be5cf487a972 h1:67xyaC98Mw+eADLjATrEsr26sIHFDllHbXtfu7arr2A=
 github.com/joeqian10/neo-gogogo v0.0.0-20200331092409-be5cf487a972/go.mod h1:1fVDp4U1ROZQBRIooecbGNHHJpfs3bG9528sqlZ096g=
+github.com/joeqian10/neo-gogogo v0.0.0-20200407021806-4985572ea1dd h1:BPM92cj7WgXkMkcMgZ2yeJEGrt7AcWzEdrY4wt20efo=
+github.com/joeqian10/neo-gogogo v0.0.0-20200407021806-4985572ea1dd/go.mod h1:1fVDp4U1ROZQBRIooecbGNHHJpfs3bG9528sqlZ096g=
 github.com/jrick/logrotate v1.0.0/go.mod h1:LNinyqDIJnpAur+b8yyulnQw/wDuN1+BYKlTRt3OuAQ=
 github.com/julienschmidt/httprouter v1.1.1-0.20170430222011-975b5c4c7c21/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d/go.mod h1:P2viExyCEfeWGU259JnaQ34Inuec4R38JCyBx2edgD0=

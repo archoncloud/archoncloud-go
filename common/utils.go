@@ -111,6 +111,10 @@ func DivideRoundUp(numerator, divisor uint64) uint64 {
 	return ((numerator + divisor - 1) / divisor)
 }
 
+func MegaBytes(numBytes int64) int64 {
+	return int64(DivideRoundUp(uint64(numBytes),Mega))
+}
+
 func ExtendedSliceToMultipleOf(multiple int, input []byte) []byte {
 	l := len(input)
 	rem := l % multiple
@@ -194,6 +198,11 @@ func AbortWithString(msg string) {
 
 func BytesToString(data []byte) string {
 	return hexutil.Encode(data)
+}
+
+// RawBytesToString returns a string without the 0x prefix
+func RawBytesToString(data []byte) string {
+	return strings.TrimPrefix(hexutil.Encode(data),"0x")
 }
 
 func StringToBytes(s string) []byte {

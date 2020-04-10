@@ -3,6 +3,8 @@ package neo
 import (
 	"fmt"
 	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
+	"github.com/joeqian10/neo-gogogo/helper"
 	"strconv"
 	"strings"
 )
@@ -38,5 +40,15 @@ func NewNeoSpProfile(s string) (p *NeoSpProfile, err error) {
 	p.CountryA3 = a[2]
 	p.NodeId = a[3]
 	err = nil
+	return
+}
+
+func NewNeoSpProfileFromReg(r *interfaces.RegistrationInfo) (prof *NeoSpProfile, err error) {
+	prof = new(NeoSpProfile)
+	// The contract stores Gas per MByte
+	ma := helper.Fixed8FromFloat64(r.Neo.GasPerGigaByte / Kilo)
+	prof.MinAsk = ma.Value
+	prof.CountryA3 = r.CountryA3
+	prof.PledgedStorage = int64(r.PledgedGigaBytes * Giga)
 	return
 }

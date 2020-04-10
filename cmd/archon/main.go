@@ -288,8 +288,7 @@ func (conf *Configuration) getAccount(passwordFile *string) interfaces.IAccount 
 		}
 		rpc_utils.SetRpcUrl(conf.EthRpcUrls)
 	case interfaces.NeoAccountType:
-		neo.SetRpcUrl(conf.NeoRpcUrls)
-		if neo.NeoEndpoint == "" {
+		if neo.SetRpcUrl(conf.NeoRpcUrls) == "" {
 			AbortWithString("None of the neo_rpc_urls is responding")
 		}
 	default:

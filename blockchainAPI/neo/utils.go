@@ -27,11 +27,24 @@ func archonCloudScriptHash() (scriptHash helper.UInt160) {
 	return
 }
 
-// callArchonContract calls a method in the Archon Cloud contract
-func callArchonContract(method string, args []sc.ContractParameter, from *wallet.Account, waitForConfirm bool) (log *models.RpcApplicationLog, txId string, err error) {
+func CgasScriptHash()  (scriptHash helper.UInt160)  {
+	scriptHash, _ = helper.UInt160FromString(cgasScript())
+	return
+}
+
+// CallArchonContract calls a method in the Archon Cloud contract. It will be signed if From is not nil.
+func CallArchonContract(method string, args []sc.ContractParameter, from *wallet.Account, waitForConfirm bool) (log *models.RpcApplicationLog, txId string, err error) {
 	sb := sc.NewScriptBuilder()
 	sb.MakeInvocationScript(archonCloudScriptHash().Bytes(), method, args)
 	script := sb.ToArray()
+	tb := tx.NewTransactionBuilder(GetRpcUrl())
+	gas, err := tb.GetGasConsumed(script)
+	if err != nil {return}
+	if gas.GreaterThan(helper.Zero) {
+		err = fmt.Errorf("GAS consumed exceeds free tier")
+		return
+	}
+
 	myTx := tx.NewInvocationTransaction(script)
 	if from != nil {
 		err = tx.AddSignature(myTx, from.KeyPair)
@@ -44,16 +57,7 @@ func callArchonContract(method string, args []sc.ContractParameter, from *wallet
 	}
 	txId = myTx.HashString()
 	if waitForConfirm {
-		err = WaitForTransaction(txId)
-		if err != nil {return}
-		r, _, err2 := getTxResponse(txId, true)
-		if r != nil {
-			log = &r.Result
-		}
-		if err2 != nil {
-			err = err2
-			return
-		}
+		log, err = GetTxResponse(txId, true)
 	}
 	return
 }
@@ -134,7 +138,7 @@ func checkForErrorInResponse(log *models.RpcApplicationLog) (err error) {
 		if len(e0.Stack) > 0 {
 			top := e0.Stack[len(e0.Stack)-1]
 			if top.Type == "ByteArray" {
-				s := hexStringToString(top.Value.(string))
+				s := HexStringToString(top.Value.(string))
 				if strings.HasPrefix(s, "Error") {
 					err = fmt.Errorf(s)
 				}
@@ -178,11 +182,11 @@ func intFromResponseLog(r *models.RpcApplicationLog) (i int64, err error) {
 	return
 }
 
-func stringFromResponse(log *models.RpcApplicationLog) (s string, err error) {
+func StringFromResponse(log *models.RpcApplicationLog) (s string, err error) {
 	err = processResponse(log, func(typ, val string) error {
 		switch typ {
 		case "ByteArray":
-			s = hexStringToString(val)
+			s = HexStringToString(val)
 			return nil
 		}
 		return errors.New("returned value is not a string")
@@ -224,7 +228,7 @@ func stringToBytes(input string) (b []byte) {
 	return
 }
 
-func hexStringToString(s string) string {
+func HexStringToString(s string) string {
 	b := stringToBytes(s)
 	return string(b)
 }
@@ -237,7 +241,7 @@ func hexStringToString(s string) string {
 //			if n.State.Type == "Array" {
 //				for _, v := range n.State.Value.([]interface{}) {
 //					for _, value := range v.(map[string]interface{}) {
-//						fmt.Println(hexStringToString(value.(string)))
+//						fmt.Println(HexStringToString(value.(string)))
 //					}
 //				}
 //			}
@@ -287,7 +291,7 @@ func getTxResponse(txId string, afterCall bool) (log *rpc.GetApplicationLogRespo
 func getValue(par *models.RpcContractParameter) string {
 	if par != nil {
 		if par.Type == "ByteArray" {
-			return hexStringToString(par.Value.(string))
+			return HexStringToString(par.Value.(string))
 		}
 	}
 	return ""
@@ -353,7 +357,7 @@ func GetStorageValueFromBytesKey(table string, key []byte) (string, error) {
 func GetStringStorageValue(table, key string) (string, error) {
 	s, err := GetStorageValue(table, key)
 	if err != nil {return "", err}
-	return hexStringToString(s), nil
+	return HexStringToString(s), nil
 }
 
 func GetStorageValueFromAddress(table, address string) (value string, err error) {
@@ -369,10 +373,5 @@ func GetAddressStorageValue(table, key string) (addr string, err error) {
 	u, err := helper.UInt160FromBytes(b)
 	if err != nil {return}
 	addr = helper.ScriptHashToAddress(u)
-	return
-}
-
-func cgasScriptHash()  (scriptHash helper.UInt160)  {
-	scriptHash, _ = helper.UInt160FromString(cgasScript())
 	return
 }

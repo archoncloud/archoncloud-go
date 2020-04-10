@@ -3,7 +3,6 @@ package account
 import (
 	"crypto/ecdsa"
 	"fmt"
-	dht "github.com/archoncloud/archon-dht/archon"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
@@ -104,22 +103,16 @@ func (acc *NeoAccount) IsSpRegistered() bool {
 }
 
 func (acc *NeoAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, err error) {
-	prof := new(neo.NeoSpProfile)
-	// The contract stores Gas per MByte
-	ma := helper.Fixed8FromFloat64(r.Neo.GasPerGigaByte/Kilo)
-	prof.MinAsk = ma.Value
-	prof.CountryA3 = r.CountryA3
-	prof.PledgedStorage = int64(r.PledgedGigaBytes*Giga)
-	prof.NodeId, err = acc.GetNodeId()
+	prof, err := neo.NewNeoSpProfileFromReg(r)
+	if err != nil {return}
+	prof.NodeId, err = interfaces.GetNodeId(acc)
 	if err != nil {return}
 	txId, err = neo.RegisterSp(acc.neoWallet, prof)
 	return
 }
 
 func (acc *NeoAccount) UnregisterSP() error {
-	nodeId, err := acc.GetNodeId()
-	if err != nil {return err}
-	return neo.UnregisterSp(acc.neoWallet, nodeId)
+	return neo.UnregisterSp(acc.neoWallet)
 }
 
 func (acc *NeoAccount) GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
@@ -131,31 +124,37 @@ func (acc *NeoAccount) IsTxAccepted(txId string) bool {
 	return accepted
 }
 
-func (acc *NeoAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsContainer, a *ArchonUrl, sps StorageProviders, maxPayment int64) (txId string, price int64, err error) {
+func (acc *NeoAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsContainer, a *ArchonUrl, sps StorageProviders, maxPayment int64) (txIds map[string]string, totalPrice int64, err error) {
 	var shardSize int64	// this could also be a whole file
 	if s != nil {
 		shardSize = s.GetShardNumBytes()
 	} else {
 		shardSize = fc.Size
 	}
-	price, err = confirmPrice(acc, shardSize, sps, maxPayment)
+	totalPrice, err = confirmPrice(acc, shardSize, sps, maxPayment)
 	if err != nil {return}
 
-	neo.MintCGasIfNeeded(acc.neoWallet,price)
+	neo.MintCGasIfNeeded(acc.neoWallet, totalPrice)
 
 	pars := neo.UploadParamsForNeo{}
 	pars.UserName = a.Username
 	pars.FileContainerType = int(fc.Type)
-	pars.ContainerSignature = BytesToString(fc.Signature)
-	spa := make(map[string]bool)
+	pars.ContainerSignature = RawBytesToString(fc.Signature)
+	pars.PublicKey = RawBytesToString(acc.EcdsaPublicKeyBytes())
+	// totalPrice is assumed an exact multiple
+	spPayment := totalPrice / int64(len(sps))
+	mBytes := MegaBytes(shardSize)
+	txIds = make(map[string]string)
 	for _, sp := range sps {
-		spa[sp.Address] = true
+		// For Neo: one transaction per SP in order to stay in free tier
+		pars.SpAddress = sp.Address
+		txId, err2 := neo.ProposeUpload(acc.neoWallet, &pars, spPayment, mBytes, false)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		txIds[sp.Address] = txId
 	}
-	for a, _ := range spa {
-		pars.SPsToUploadTo = append(pars.SPsToUploadTo, a)
-	}
-	pars.PublicKey = strings.TrimPrefix(BytesToString(acc.EcdsaPublicKeyBytes()), "0x")
-	txId, err = neo.ProposeUpload(acc.neoWallet, &pars, price, true)
 	return
 }
 
@@ -231,11 +230,8 @@ func GasToInt64(gas float64) int64 {
 	return helper.Fixed8FromFloat64(gas).Value
 }
 
-func (acc *NeoAccount) GetNodeId() (nodeId string, err error) {
-	nId, err := dht.GetNodeID(interfaces.GetSeed(acc))
-	if err != nil {return}
-	nodeId = nId.Pretty()
-	return
+func (acc *NeoAccount) GetWallet() *wallet.Account {
+	return acc.neoWallet
 }
 
 // GenerateNewNeoWallet creates a new .json wallet file

@@ -12,7 +12,7 @@ type UploadParamsForNeo struct {
 	PublicKey          string
 	ContainerSignature string
 	FileContainerType  int
-	SPsToUploadTo      []string // addresses of sps to whom the shards are to go
+	SpAddress			string
 }
 
 func (u *UploadParamsForNeo) String() string {
@@ -21,7 +21,7 @@ func (u *UploadParamsForNeo) String() string {
 		u.PublicKey,
 		u.ContainerSignature,
 		u.FileContainerType,
-		u.SPsToUploadTo)
+		u.SpAddress)
 	return s
 }
 
@@ -41,9 +41,7 @@ func NewUploadParamsForNeo(s string) (u *UploadParamsForNeo, err error) {
 	u.PublicKey = buf[1]
 	u.ContainerSignature = buf[2]
 	u.FileContainerType, _ = strconv.Atoi(buf[3])
-	for _, spa := range buf[4:] {
-		u.SPsToUploadTo = append(u.SPsToUploadTo,spa)
-	}
+	u.SpAddress = buf[4]
 	return
 }
 
