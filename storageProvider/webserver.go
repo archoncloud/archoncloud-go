@@ -103,7 +103,6 @@ func RunWebServer() (err error) {
 	signal.Notify(signalChannel, os.Interrupt, os.Kill)
 
 	// Need to have a large timeout for large files
-	//const timeout = 25*time.Minute
 	// Starting HTTP server
 	LogInfo.Printf(fmt.Sprintf("API on HTTP port %d\n", ports[0]))
 	go func() {
@@ -111,8 +110,6 @@ func RunWebServer() (err error) {
 		server = &http.Server{
 			Addr:           ":" + strconv.Itoa(ports[0]),
 			Handler:        handler,
-			//ReadTimeout:    timeout,
-			//WriteTimeout:   timeout,
 			MaxHeaderBytes: 1 << 20,
 		}
 		if err := server.ListenAndServe(); err != nil {
@@ -122,7 +119,7 @@ func RunWebServer() (err error) {
 	PortsUsed = append(PortsUsed, ports[0])
 
 	if len(ports) > 1 {
-		// We have certificate fiel
+		// We have certificate file
 		// Starting HTTPS server
 		LogInfo.Printf(fmt.Sprintf("API on HTTPS port %d\n", ports[1]))
 		go func() {
@@ -130,8 +127,6 @@ func RunWebServer() (err error) {
 			sslServer = &http.Server{
 				Addr:           ":" + strconv.Itoa(ports[1]),
 				Handler:        handler,
-				//ReadTimeout:    timeout,
-				//WriteTimeout:   timeout,
 				MaxHeaderBytes: 1 << 20,
 			}
 			// For now these files are in the same folder as the executable

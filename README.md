@@ -47,7 +47,9 @@ The config file is a JSON file that can be edited with a text editor.
 You can participate in either the Ethereum or Neo blockchain, or both, by entering the wallet path for the appropriate wallet file.  
 You will be asked for passwords once the program starts.  
 You can also create new wallets from the command line, but you will need to add funds to them before using.  
-The `host` entry needs to be set to a public IP or DNS name.
+The `host` entry needs to be set to a public IP or DNS name.  
+The host will listen on the port specified in the config file, exposing both http and https endpoints. Https will only be exposed if certificate files are present in the folder where the executable resides (named `cert.pem` and `key.pem`).  
+  
 Some items in the config file can only be changed with an editor, not from the command line.  
 These are:  
 - `eth_rpc_urls`: Only needed if you entered an Ethereum wallet. One or more URLs that provide an Ethereum RPC service. Enter the one you want of use. Infura is one such provider of RPC connectivity.  
