@@ -76,7 +76,7 @@ func (u *Request) postWholeFile(spUrl, txid string, aurl *ArchonUrl, bp *BytePro
 		if writeErr != nil {
 			return
 		}
-		part, writeErr = mm.CreateFormFile("UploadVersion", string(sVersionData))
+		writeErr = mm.WriteField("UploadVersion", string(sVersionData))
 		if writeErr != nil {
 			return
 		}
