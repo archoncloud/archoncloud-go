@@ -177,21 +177,20 @@ func (u *Request) postShard(su *shardUpload, txid string, bp *ByteProgress, ucha
 	go func() {
 		defer w.Close()
 		defer m.Close()
+		bVersionData, writeErr := json.Marshal(u.VersionData)
+		if writeErr != nil {
+			return
+		}
+		writeErr = m.WriteField("UploadVersion", string(bVersionData))
+		if writeErr != nil {
+			return
+		}
 		part, writeErr := m.CreateFormFile(UploadFileKey, u.FilePath)
 		if writeErr != nil {
 			return
 		}
-		mm := multipart.NewWriter(part)
-		sVersionData, writeErr := json.Marshal(u.VersionData)
-		if writeErr != nil {
-			return
-		}
-		writeErr = mm.WriteField("UploadVersion", string(sVersionData))
-		if writeErr != nil {
-			return
-		}
 		shard := su.GetShard()
-		writeErr = shard.WriteShardContainer(part, u.UploaderAccount)
+		writeErr = shard.WriteShardContainer(part, bVersionData, u.UploaderAccount)
 	}()
 
 	success := false

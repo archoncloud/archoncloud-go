@@ -66,17 +66,16 @@ func (u *Request) postWholeFile(spUrl, txid string, aurl *ArchonUrl, bp *BytePro
 	go func() {
 		defer w.Close()
 		defer m.Close()
-		// Important: CreateFormFile must be in go function
-		part, writeErr := m.CreateFormFile(UploadFileKey, u.FilePath)
-		if writeErr != nil {
-			return
-		}
-		mm := multipart.NewWriter(part)
 		sVersionData, writeErr := json.Marshal(u.VersionData)
 		if writeErr != nil {
 			return
 		}
-		writeErr = mm.WriteField("UploadVersion", string(sVersionData))
+		writeErr = m.WriteField("UploadVersion", string(sVersionData))
+		if writeErr != nil {
+			return
+		}
+		// Important: CreateFormFile must be in go function
+		part, writeErr := m.CreateFormFile(UploadFileKey, u.FilePath)
 		if writeErr != nil {
 			return
 		}
@@ -84,7 +83,6 @@ func (u *Request) postWholeFile(spUrl, txid string, aurl *ArchonUrl, bp *BytePro
 		if writeErr != nil {
 			return
 		}
-
 		defer file.Close()
 		_, writeErr = io.Copy(part, file)
 	}()
