@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -32,7 +33,6 @@ func (u *Request) wholeFileUpload(a *ArchonUrl, sps StorageProviders) (price int
 	// There will be no container generated, but we need the data from it
 	fileContainer := shards.FileContainer{
 		Version:         shards.FileContainerCurrentVersion,
-		UploadVersion:   *u.VersionData,
 		Type:            shards.NoContainer,
 		EncryptionType:  shards.NoEncryption,
 		CompressionType: 0,
@@ -71,7 +71,15 @@ func (u *Request) postWholeFile(spUrl, txid string, aurl *ArchonUrl, bp *BytePro
 		if writeErr != nil {
 			return
 		}
-
+		mm := multipart.NewWriter(part)
+		sVersionData, writeErr := json.Marshal(u.VersionData)
+		if writeErr != nil {
+			return
+		}
+		part, writeErr = mm.CreateFormFile("UploadVersion", string(sVersionData))
+		if writeErr != nil {
+			return
+		}
 		file, writeErr := os.OpenFile(u.FilePath, os.O_RDONLY, 0)
 		if writeErr != nil {
 			return
