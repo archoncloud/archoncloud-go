@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	permLayer "github.com/archoncloud/archon-dht/permission_layer"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/archoncloud/archoncloud-go/shards"
@@ -36,7 +37,8 @@ type Request struct {
 	Batch           bool // operate in batch mode - no user interaction
 	// If 0, any payment is valid, otherwise in units of blockchain
 	// Eth: Wei, Neo: Gas* (10**8)
-	MaxPayment int64
+	MaxPayment  int64
+	VersionData *permLayer.VersionData
 }
 
 var batchMode bool
@@ -124,7 +126,7 @@ func (u *Request) Upload() (downloadUrl string, price int64, err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println("debug TODO USE VERSIONDATA ", versionData) // FIXME
+	u.VersionData = versionData
 	if u.Encoding != EncodingNone {
 		// Shards
 		price, err = u.shardedUpload(a, sps)
