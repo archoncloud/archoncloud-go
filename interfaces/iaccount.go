@@ -5,9 +5,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	dht "github.com/archoncloud/archon-dht/archon"
-	"github.com/archoncloud/archoncloud-go/common"
 	"time"
+
+	dht "github.com/archoncloud/archon-dht/archon"
+	permLayer "github.com/archoncloud/archon-dht/permission_layer"
+	"github.com/archoncloud/archoncloud-go/common"
 )
 
 type AccountType uint8
@@ -18,18 +20,18 @@ const (
 )
 
 type IAccount interface {
-	GetAccountType()	AccountType
-	BlockchainName()	string
+	GetAccountType() AccountType
+	BlockchainName() string
 	Permission() common.UrlPermission
 
-	EcdsaPrivateKey()	*ecdsa.PrivateKey	// follows Eth standard
-	PrivateKeyBytes()	[]byte
-	PrivateKeyString()	string
-	PublicKeyBytes()	[]byte
-	EcdsaPublicKeyBytes()	[]byte	// follows Eth standard
-	PublicKeyString()	string
-	AddressBytes()		[]byte
-	AddressString()		string
+	EcdsaPrivateKey() *ecdsa.PrivateKey // follows Eth standard
+	PrivateKeyBytes() []byte
+	PrivateKeyString() string
+	PublicKeyBytes() []byte
+	EcdsaPublicKeyBytes() []byte // follows Eth standard
+	PublicKeyString() string
+	AddressBytes() []byte
+	AddressString() string
 
 	Sign(hash []byte) (sig []byte, err error)
 	Verify(hash, signature, publicKey []byte) bool
@@ -38,8 +40,8 @@ type IAccount interface {
 	IsTxAccepted(txId string) bool
 
 	// For client side
-	GetUserName()		(string, error)
-	RegisterUserName(string)	error
+	GetUserName() (string, error)
+	RegisterUserName(string) error
 
 	// For Storage Provider side
 	// Checks if the storage provider is registered on the blockchain
@@ -48,6 +50,7 @@ type IAccount interface {
 	UnregisterSP() error
 	GetUploadTxInfo(txId string) (info *UploadTxInfo, err error)
 	GetEarnings() (int64, error)
+	NewVersionData() (*permLayer.VersionData, error)
 
 	// Utilities
 	// amount is in blockchain base (Wei/Gas)
@@ -57,8 +60,8 @@ type IAccount interface {
 }
 
 type EthereumValues struct {
-	WeiPerByte	float64
-	EthStake 	float64
+	WeiPerByte float64
+	EthStake   float64
 }
 
 type NeoValues struct {
@@ -67,12 +70,12 @@ type NeoValues struct {
 
 // Info needed by the SP when it received an upload request
 type UploadTxInfo struct {
-	TxId		string
-	UserName	string
-	PublicKey	[]byte
+	TxId              string
+	UserName          string
+	PublicKey         []byte
 	FileContainerType uint8
-	Signature	[]byte
-	SPs			[][]byte
+	Signature         []byte
+	SPs               [][]byte
 }
 
 func (u *UploadTxInfo) ToJsonString() string {
@@ -84,11 +87,11 @@ func (u *UploadTxInfo) ToJsonString() string {
 }
 
 type RegistrationInfo struct {
-	CountryA3			string
-	PledgedGigaBytes	float64
-	Ethereum			EthereumValues
-	Neo					NeoValues
-	Version				int
+	CountryA3        string
+	PledgedGigaBytes float64
+	Ethereum         EthereumValues
+	Neo              NeoValues
+	Version          int
 }
 
 func WaitForRegUnreg(acc IAccount, isReg bool, timeout time.Duration) error {
@@ -104,7 +107,7 @@ func WaitForRegUnreg(acc IAccount, isReg bool, timeout time.Duration) error {
 			}
 			return nil
 		}
-		time.Sleep(8*time.Second)
+		time.Sleep(8 * time.Second)
 	}
 	return fmt.Errorf("registration timed out. Blockchain is busy. Try again later")
 }
@@ -117,7 +120,9 @@ func GetSeed(acc IAccount) int64 {
 
 func GetNodeId(acc IAccount) (nodeId string, err error) {
 	nId, err := dht.GetNodeID(GetSeed(acc))
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	nodeId = nId.Pretty()
 	return
 }

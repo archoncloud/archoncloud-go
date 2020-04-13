@@ -3,6 +3,9 @@ package account
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"strings"
+
+	permLayer "github.com/archoncloud/archon-dht/permission_layer"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
@@ -13,8 +16,8 @@ import (
 	"github.com/joeqian10/neo-gogogo/helper"
 	"github.com/joeqian10/neo-gogogo/wallet"
 	"github.com/pkg/errors"
-	"strings"
 )
+
 /*
 	Feb 2020
 	1 NEO = $14.882922
@@ -30,7 +33,7 @@ import (
 
 type NeoAccount struct {
 	neoWallet *wallet.Account
-	eth *EthereumKey
+	eth       *EthereumKey
 }
 
 // --------------------- IAccount start -----------------------------------------------
@@ -47,7 +50,7 @@ func (acc *NeoAccount) Permission() UrlPermission {
 }
 
 func (account *NeoAccount) AddressBytes() []byte {
-	addr, _ :=  helper.AddressToScriptHash(account.neoWallet.Address)
+	addr, _ := helper.AddressToScriptHash(account.neoWallet.Address)
 	return addr.Bytes()
 }
 
@@ -104,9 +107,13 @@ func (acc *NeoAccount) IsSpRegistered() bool {
 
 func (acc *NeoAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, err error) {
 	prof, err := neo.NewNeoSpProfileFromReg(r)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	prof.NodeId, err = interfaces.GetNodeId(acc)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	txId, err = neo.RegisterSp(acc.neoWallet, prof)
 	return
 }
@@ -125,14 +132,16 @@ func (acc *NeoAccount) IsTxAccepted(txId string) bool {
 }
 
 func (acc *NeoAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsContainer, a *ArchonUrl, sps StorageProviders, maxPayment int64) (txIds map[string]string, totalPrice int64, err error) {
-	var shardSize int64	// this could also be a whole file
+	var shardSize int64 // this could also be a whole file
 	if s != nil {
 		shardSize = s.GetShardNumBytes()
 	} else {
 		shardSize = fc.Size
 	}
 	totalPrice, err = confirmPrice(acc, shardSize, sps, maxPayment)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	neo.MintCGasIfNeeded(acc.neoWallet, totalPrice)
 
@@ -173,15 +182,31 @@ func (acc *NeoAccount) Verify(hash, signature, publicKey []byte) bool {
 */
 
 func (acc *NeoAccount) Sign(hash []byte) (sig []byte, err error) {
-	return Sign(acc,hash)
+	return Sign(acc, hash)
 }
 
 func (acc *NeoAccount) Verify(hash, signature, publicKey []byte) bool {
-	return Verify(acc,hash,signature,publicKey)
+	return Verify(acc, hash, signature, publicKey)
 }
 
 func (acc *NeoAccount) GetEarnings() (int64, error) {
 	return neo.GetCGASBalanceOf(acc.AddressString())
+}
+
+func (acc *NeoAccount) NewVersionData() (*permLayer.VersionData, error) {
+	height, err := neo.GetBlockHeight()
+	if err != nil {
+		return nil, err
+	}
+	hash, err := neo.GetBlockHash(height)
+	if err != nil {
+		return nil, err
+	}
+	v := &permLayer.VersionData{
+		BlockHeight: height,
+		BlockHash:   hash,
+	}
+	return v, nil
 }
 
 // --------------------- IAccount end -----------------------------------------------
@@ -193,7 +218,9 @@ func NewNeoAccount(walletPath string, password string) (acc *NeoAccount, err err
 		return
 	}
 	w, err := wallet.NewWalletFromFile(walletPath)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	err = w.DecryptAll(password)
 	if err != nil {
 		err = errors.Wrap(err, "wrong password")
@@ -213,15 +240,19 @@ func NewNeoAccount(walletPath string, password string) (acc *NeoAccount, err err
 		}
 	}
 	eth, err := ToEcdsa(wa.KeyPair.PrivateKey)
-	if err != nil {return}
-	acc = &NeoAccount{wa, eth }
+	if err != nil {
+		return
+	}
+	acc = &NeoAccount{wa, eth}
 	return
 }
 
 func NewNeoAccountFromWif(wif string) (acc *NeoAccount, err error) {
 	w, err := wallet.NewAccountFromWIF(wif)
 	eth, err := ToEcdsa(w.KeyPair.PrivateKey)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	acc = &NeoAccount{w, eth}
 	return
 }
@@ -239,27 +270,33 @@ func GenerateNewNeoWallet(path, password, wif string) (err error) {
 	w := wallet.NewWallet()
 	if wif != "" {
 		err = w.ImportFromWIF(wif)
-		if err != nil {return}
+		if err != nil {
+			return
+		}
 	}
 	err = w.EncryptAll(password)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	err = w.Save(path)
 	return
 }
 
 // Needed because file signing is done with Eth keys
 type EthereumKey struct {
-	PrivateKey []byte	// 32
-	PublicKey  []byte	// 64
+	PrivateKey []byte // 32
+	PublicKey  []byte // 64
 }
 
 func ToEcdsa(privateKey []byte) (ethKey *EthereumKey, err error) {
 	point, err := ecrypto.ToECDSA(privateKey)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	publicKeyStringX := hexutil.EncodeBig(point.PublicKey.X)
 	publicKeyStringY := hexutil.EncodeBig(point.PublicKey.Y)
-	for _, p := range []*string {&publicKeyStringX,&publicKeyStringY} {
+	for _, p := range []*string{&publicKeyStringX, &publicKeyStringY} {
 		for len(*p) < 66 {
 			*p = "0x" + "0" + strings.Replace(*p, "0x", "", -1)
 		}

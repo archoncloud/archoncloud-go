@@ -11,8 +11,10 @@ import (
 	"strings"
 	"time"
 
+	permLayer "github.com/archoncloud/archon-dht/permission_layer"
 	"github.com/archoncloud/archoncloud-ethereum/client_utils"
 	"github.com/archoncloud/archoncloud-ethereum/register"
+	"github.com/archoncloud/archoncloud-ethereum/rpc_utils"
 	"github.com/archoncloud/archoncloud-ethereum/wallet"
 	. "github.com/archoncloud/archoncloud-go/common"
 	ifc "github.com/archoncloud/archoncloud-go/interfaces"
@@ -36,12 +38,12 @@ type EthAccount struct {
 	address         []byte            // Ethereum ID (20 bytes)
 	privateKeyBytes []byte            // 32 bytes
 	publicKeyBytes  []byte            // 64 bytes The Ethereum public key is 65 bytes. First byte is always 4
-	keyset			*wallet.EthereumKeyset
+	keyset          *wallet.EthereumKeyset
 }
 
 const (
-	EthToWei                 = Quintillion
-	CentsToWei               = 100000000000
+	EthToWei   = Quintillion
+	CentsToWei = 100000000000
 )
 
 // --------------------- IAccount start -----------------------------------------------
@@ -178,7 +180,7 @@ func (acc *EthAccount) RegisterSP(r *ifc.RegistrationInfo) (txId string, err err
 
 func (acc *EthAccount) UnregisterSP() (err error) {
 	par := register.SPParams{
-		Wallet:         *acc.keyset,
+		Wallet: *acc.keyset,
 	}
 	txId, err := register.UnregisterSP(par)
 	if err == nil {
@@ -211,7 +213,9 @@ func (acc *EthAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 		shardSize = fc.Size
 	}
 	price, err = confirmPrice(acc, shardSize, sps, maxPayment)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	uplPar := client_utils.UploadParams{
 		Wallet:             *acc.keyset,
@@ -254,16 +258,31 @@ func (acc *EthAccount) HundredthOfCent() int64 {
 }
 
 func (acc *EthAccount) Sign(hash []byte) (sig []byte, err error) {
-	return Sign(acc,hash)
+	return Sign(acc, hash)
 }
 
 func (acc *EthAccount) Verify(hash, signature, publicKey []byte) bool {
-	return Verify(acc,hash,signature,publicKey)
+	return Verify(acc, hash, signature, publicKey)
 }
 
 func (acc *EthAccount) GetEarnings() (int64, error) {
 	bal, err := client_utils.GetEarnings(*acc.GetEthAddress())
 	return bal.Int64(), err
+}
+
+func (acc *EthAccount) NewVersionData() (*permLayer.VersionData, error) {
+	blockHeight, err := rpc_utils.GetBlockHeight()
+	if err != nil {
+		return nil, err
+	}
+	blockHash, err := rpc_utils.GetBlockHash(blockHeight)
+	if err != nil {
+		return nil, err
+	}
+	versionData := new(permLayer.VersionData)
+	versionData.BlockHeight = blockHeight
+	versionData.BlockHash = blockHash
+	return versionData, nil
 }
 
 // --------------------- IAccount end -----------------------------------------------
