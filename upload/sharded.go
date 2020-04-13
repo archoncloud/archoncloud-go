@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -180,7 +181,15 @@ func (u *Request) postShard(su *shardUpload, txid string, bp *ByteProgress, ucha
 		if writeErr != nil {
 			return
 		}
-
+		mm := multipart.NewWriter(part)
+		sVersionData, writeErr := json.Marshal(u.VersionData)
+		if writeErr != nil {
+			return
+		}
+		writeErr = mm.WriteField("UploadVersion", string(sVersionData))
+		if writeErr != nil {
+			return
+		}
 		shard := su.GetShard()
 		writeErr = shard.WriteShardContainer(part, u.UploaderAccount)
 	}()
