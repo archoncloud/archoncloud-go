@@ -12,6 +12,7 @@ import (
 	"github.com/joeqian10/neo-gogogo/wallet"
 	"github.com/pkg/errors"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -232,10 +233,13 @@ func GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
 	neoPars, err := NewUploadParamsForNeoFromBytes([]byte(notification))
 	if err != nil {return}
 
+	publicKey, err := GetTxPublicKey(txId)
+	if err != nil {return}
 	iPars := interfaces.UploadTxInfo{}
 	iPars.TxId = txId
 	iPars.UserName = neoPars.UserName
-	iPars.PublicKey = StringToBytes(neoPars.PublicKey)
+	//iPars.PublicKey = StringToBytes(neoPars.PublicKey)
+	iPars.PublicKey = StringToBytes(publicKey)
 	iPars.FileContainerType = uint8(neoPars.FileContainerType)
 	iPars.Signature = StringToBytes(neoPars.ContainerSignature)
 	b, err := helper.AddressToScriptHash(neoPars.SpAddress)
@@ -293,17 +297,24 @@ func WaitForTransaction(txId string) error {
 func GetTxResponse(txId string, afterCall bool) (log *models.RpcApplicationLog, err error) {
 	err = WaitForTransaction(txId)
 	if err != nil {return}
-	r, _, err2 := getTxResponse(txId, afterCall)
-	if r != nil {
-		log = &r.Result
-	}
-	if err2 != nil {
-		err = err2
-		return
-	}
+	log, _, err = getTxResponse(txId, afterCall)
 	return
 }
 
+func GetTxPublicKey(txId string) (publicKey string, err error) {
+	r := Client().GetRawTransaction(txId)
+	if r.HasError()	{
+		err = fmt.Errorf(r.Error.Message)
+	} else {
+		if len(r.Result.Scripts) > 0 {
+			w := r.Result.Scripts[0]
+			//  get rid of the prefix "21" and the suffix "ac"
+			publicKey = strings.TrimPrefix(w.Verification, "21")
+			publicKey = strings.TrimSuffix(publicKey, "ac")
+		}
+	}
+	return
+}
 
 func GetBlockHeight() (ret string, err error) {
 	resp := Client().GetBlockCount()

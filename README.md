@@ -1,6 +1,7 @@
 # Abstract
 
 This software provides blockchain based storage, the *Archon Blockchain Storage*. **Ethereum** and **Neo** blockchains are supported.  
+Currently running on test only: Goerli for Ethereum and testnet for Neo.  
 It builds two executables: the Storage Provider (**archonSP**) and upload/download client (**archon**). Tested to work on Linux and Windows.  
 Storage providers can sign up and offer storage capacity. Users of the Archon client can then upload and download files from this distributed storage.  
 Storage providers are paid in the currency of the blockchain. Users pay in the currency of the blockchain (for uploads, downloads are free).  
@@ -48,7 +49,7 @@ You can participate in either the Ethereum or Neo blockchain, or both, by enteri
 You will be asked for passwords once the program starts.  
 You can also create new wallets from the command line, but you will need to add funds to them before using.  
 The `host` entry needs to be set to a public IP or DNS name.  
-The host will listen on the port specified in the config file, exposing both http and https endpoints. Https will only be exposed if certificate files are present in the folder where the executable resides (named `cert.pem` and `key.pem`).  
+The host will listen on a range of ports starting with the port specified in the config file, exposing both http and https endpoints. Https will only be exposed if certificate files are present in the folder where the executable resides (named `cert.pem` and `key.pem`).  
   
 Some items in the config file can only be changed with an editor, not from the command line.  
 These are:  

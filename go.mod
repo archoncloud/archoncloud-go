@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/joeqian10/neo-gogogo v0.0.0-20200331092409-be5cf487a972
+	github.com/joeqian10/neo-gogogo v0.0.0-20200412074503-e08b4d38dd68
 	github.com/multiformats/go-multiaddr v0.2.0
 	github.com/multiformats/go-multiaddr-net v0.1.1
 	github.com/pariz/gountries v0.0.0-20191029140926-233bc78cf5b5

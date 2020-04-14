@@ -6,7 +6,6 @@ import (
 	"fmt"
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/joeqian10/neo-gogogo/helper"
-	"github.com/joeqian10/neo-gogogo/rpc"
 	"github.com/joeqian10/neo-gogogo/rpc/models"
 	"github.com/joeqian10/neo-gogogo/sc"
 	"github.com/joeqian10/neo-gogogo/tx"
@@ -124,7 +123,7 @@ func processResponse(log *models.RpcApplicationLog, f func(typ, val string) erro
 		e0 := log.Executions[0]
 		if len(e0.Stack) > 0 {
 			item := e0.Stack[len(e0.Stack)-1]
-			err = f(item.Type, item.Value.(string))
+			err = f(item.Type, item.Value)
 			return
 		}
 	}
@@ -138,7 +137,7 @@ func checkForErrorInResponse(log *models.RpcApplicationLog) (err error) {
 		if len(e0.Stack) > 0 {
 			top := e0.Stack[len(e0.Stack)-1]
 			if top.Type == "ByteArray" {
-				s := HexStringToString(top.Value.(string))
+				s := HexStringToString(top.Value)
 				if strings.HasPrefix(s, "Error") {
 					err = fmt.Errorf(s)
 				}
@@ -249,7 +248,7 @@ func HexStringToString(s string) string {
 //	}
 //}
 
-func getTxResponse(txId string, afterCall bool) (log *rpc.GetApplicationLogResponse, notification string, err error) {
+func getTxResponse(txId string, afterCall bool) (log *models.RpcApplicationLog, notification string, err error) {
 	r:= Client().GetApplicationLog(txId)
 	if r.HasError() {
 		err = errors.New(r.Error.Message)
@@ -268,7 +267,7 @@ func getTxResponse(txId string, afterCall bool) (log *rpc.GetApplicationLogRespo
 		err = errors.New("Neo VM Fault")
 		return
 	}
-	log = &r
+	log = &r.Result
 	for _, n := range e.Notifications {
 		if n.State.Type == "Array" {
 			values := n.State.Value
@@ -291,7 +290,7 @@ func getTxResponse(txId string, afterCall bool) (log *rpc.GetApplicationLogRespo
 func getValue(par *models.RpcContractParameter) string {
 	if par != nil {
 		if par.Type == "ByteArray" {
-			return HexStringToString(par.Value.(string))
+			return HexStringToString(par.Value)
 		}
 	}
 	return ""
