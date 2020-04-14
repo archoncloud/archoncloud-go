@@ -38,29 +38,31 @@ func RpcUrls() []string {
 }
 
 func Client() *rpc.RpcClient {
-	return rpc.NewClient(neoEndpoint)
+	return rpc.NewClient(GetRpcUrl())
 }
 
 func SetRpcUrl(rpcUrls []string) string {
-	neoEndpointMtx.Lock()
-	defer neoEndpointMtx.Unlock()
 	if neoEndpoint == "" {
-		var port int
-		switch BuildConfig {
-		case Release:
-			port = 10333
-		case Beta:
-			port = 20332
-		case Debug:
-			neoEndpoint = "http://127.0.0.1:10002";
-			return neoEndpoint
-		default:
-			port = 0
+		neoEndpointMtx.Lock()
+		defer neoEndpointMtx.Unlock()
+		if neoEndpoint == "" {
+			var port int
+			switch BuildConfig {
+			case Release:
+				port = 10333
+			case Beta:
+				port = 20332
+			case Debug:
+				neoEndpoint = "http://127.0.0.1:10002";
+				return neoEndpoint
+			default:
+				port = 0
+			}
+			if rpcUrls == nil {
+				rpcUrls = RpcUrls()
+			}
+			neoEndpoint = FirstLiveUrl(rpcUrls, port)
 		}
-		if rpcUrls == nil {
-			rpcUrls = RpcUrls()
-		}
-		neoEndpoint = FirstLiveUrl(rpcUrls, port)
 	}
 	return neoEndpoint
 }
@@ -233,13 +235,10 @@ func GetUploadTxInfo(txId string) (pInfo *interfaces.UploadTxInfo, err error) {
 	neoPars, err := NewUploadParamsForNeoFromBytes([]byte(notification))
 	if err != nil {return}
 
-	publicKey, err := GetTxPublicKey(txId)
-	if err != nil {return}
 	iPars := interfaces.UploadTxInfo{}
 	iPars.TxId = txId
 	iPars.UserName = neoPars.UserName
-	//iPars.PublicKey = StringToBytes(neoPars.PublicKey)
-	iPars.PublicKey = StringToBytes(publicKey)
+	iPars.PublicKey = StringToBytes(neoPars.PublicKey)
 	iPars.FileContainerType = uint8(neoPars.FileContainerType)
 	iPars.Signature = StringToBytes(neoPars.ContainerSignature)
 	b, err := helper.AddressToScriptHash(neoPars.SpAddress)
@@ -267,29 +266,30 @@ func IsTxAccepted(txId string) (bool, error) {
 }
 
 func WaitForTransaction(txId string) error {
-	var checkPeriod, checkTimeout time.Duration
+	var checkTimeout time.Duration
+	var checkSec float64
 	fmt.Println("Waiting for transaction to complete...")
 	switch BuildConfig {
 	case Debug:
-		checkPeriod = 2*time.Second
+		checkSec = 2.0
 		checkTimeout = 8*time.Second
 	default:
-		checkPeriod = 9*time.Second
+		checkSec = 9.0
 		checkTimeout = 45*time.Second
 	}
 
 	start := time.Now()
-	first := true
+	waitSec := 1.0
 	for time.Since(start) < checkTimeout {
-		if first {
-			time.Sleep(checkPeriod/2)
-			first = false
-		} else {
-			time.Sleep(checkPeriod)
-		}
 		accepted, err := IsTxAccepted(txId)
 		if err != nil {return err}
 		if accepted {return nil}
+		if waitSec > checkSec {
+			waitSec = checkSec
+		}
+		d := time.Duration(int64(time.Millisecond) * int64(waitSec*1000.0))
+		time.Sleep(d)
+		waitSec *= 1.8
 	}
 	return fmt.Errorf("timed out waiting for %s", txId)
 }
