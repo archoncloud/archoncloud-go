@@ -66,6 +66,7 @@ func (u *Request) shardedUpload(a *ArchonUrl, sps StorageProviders) (price int64
 	}
 	// New proposed upload transaction
 	var txIds map[string]string
+	txIds = make(map[string]string)
 	switch u.UploaderAccount.GetAccountType() {
 	case ifs.EthAccountType:
 		var txId string
