@@ -105,7 +105,7 @@ func (acc *NeoAccount) IsSpRegistered() bool {
 func (acc *NeoAccount) RegisterSP(r *interfaces.RegistrationInfo) (txId string, err error) {
 	prof, err := neo.NewNeoSpProfileFromReg(r)
 	if err != nil {return}
-	prof.NodeId, err = interfaces.GetNodeId(acc)
+	prof.NodeId, err = GetNodeId(acc)
 	if err != nil {return}
 	txId, err = neo.RegisterSp(acc.neoWallet, prof)
 	return

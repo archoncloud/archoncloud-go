@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	dht "github.com/archoncloud/archon-dht/archon"
 	"github.com/archoncloud/archoncloud-go/common"
 	"time"
 )
@@ -113,11 +112,4 @@ func GetSeed(acc IAccount) int64 {
 	hash := common.GetArchonHash(acc.PrivateKeyBytes())
 	seed, _ := binary.Varint(hash)
 	return seed
-}
-
-func GetNodeId(acc IAccount) (nodeId string, err error) {
-	nId, err := dht.GetNodeID(GetSeed(acc))
-	if err != nil {return}
-	nodeId = nId.Pretty()
-	return
 }

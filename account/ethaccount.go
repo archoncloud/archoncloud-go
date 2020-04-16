@@ -138,7 +138,7 @@ func (acc *EthAccount) IsSpRegistered() (isRegistered bool) {
 }
 
 func (acc *EthAccount) RegisterSP(r *ifc.RegistrationInfo) (txId string, err error) {
-	nodeId, err := ifc.GetNodeId(acc)
+	nodeId, err := GetNodeId(acc)
 	if err != nil {
 		return
 	}

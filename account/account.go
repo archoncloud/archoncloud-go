@@ -2,6 +2,7 @@ package account
 
 import (
 	"fmt"
+	dht "github.com/archoncloud/archon-dht/archon"
 	"github.com/dustin/go-humanize"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
 	. "github.com/archoncloud/archoncloud-go/common"
@@ -177,3 +178,9 @@ func ProposeUpload(acc ifc.IAccount, fc *shards.FileContainer, s *shards.ShardsC
 	return
 }
 
+func GetNodeId(acc ifc.IAccount) (nodeId string, err error) {
+	nId, err := dht.GetNodeID(ifc.GetSeed(acc))
+	if err != nil {return}
+	nodeId = nId.Pretty()
+	return
+}
