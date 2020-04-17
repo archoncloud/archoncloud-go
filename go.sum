@@ -35,10 +35,14 @@ github.com/archoncloud/archon-dht v0.0.24 h1:k6c4MCRTG/74zbeGF89wFt0HxLjlnc7LfWg
 github.com/archoncloud/archon-dht v0.0.24/go.mod h1:4zzWTRNUYGnNsRFkvneNQTNuNvZxvzHCS/eZR5LsSPk=
 github.com/archoncloud/archon-dht v0.0.28 h1:IktZp5nM4ClA/QFXioT/TrrQbTz9p1h5saYq27zyspY=
 github.com/archoncloud/archon-dht v0.0.28/go.mod h1:TjP1DE0eI6XGzpbY2snqnqK/jsdMT6C4dA6Hkdv9BXE=
+github.com/archoncloud/archon-dht v0.0.29 h1:cvN5QDrGLoMoKLB79mYnRMtE+nw+EwQqLlXv3UZNE+I=
+github.com/archoncloud/archon-dht v0.0.29/go.mod h1:j+eGQboDfLSr/E6xrRaNENaKM+++r4rmcEuM75lj6eg=
 github.com/archoncloud/archoncloud-ethereum v0.0.15 h1:lQLzT+BZ69IHNURnRjPwWZ/gHfXEp2zxmMPh1O/5Nmw=
 github.com/archoncloud/archoncloud-ethereum v0.0.15/go.mod h1:2V+FoKRl62TQ+qVFFBdiwLPHlLUZgJBGLwWs9EhrQy8=
 github.com/archoncloud/archoncloud-ethereum v0.0.25 h1:qOUeM2js6rs8PE9ivuftE32X1+YgalTM5sCZOtdTie4=
 github.com/archoncloud/archoncloud-ethereum v0.0.25/go.mod h1:2V+FoKRl62TQ+qVFFBdiwLPHlLUZgJBGLwWs9EhrQy8=
+github.com/archoncloud/archoncloud-ethereum v0.0.26 h1:XaOG9nXt1MwFnDYWnFbyUNSfvowUI+3mXfS45YlKZV8=
+github.com/archoncloud/archoncloud-ethereum v0.0.26/go.mod h1:+pOaPSeLlROaI7yXllf6bOpOZAdfcvLADGAJDOQ5n4E=
 github.com/archoncloud/archoncloud-go v0.0.3/go.mod h1:DreiPM5Eocj33PhGXVMoqziHrA3lcLjpruvcA+cFbFo=
 github.com/archoncloud/archoncloud-go v0.0.4/go.mod h1:DreiPM5Eocj33PhGXVMoqziHrA3lcLjpruvcA+cFbFo=
 github.com/archoncloud/archoncloud-go v0.0.10/go.mod h1:Yp1/pNBzKO0ncp3CYiy9X/EW3EP0N/VY6wJJmSXpG/s=
