@@ -1,6 +1,13 @@
 package storageProvider
 
 import (
+	"math"
+	"os"
+	fp "path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
 	dht "github.com/archoncloud/archon-dht/archon"
 	dhtp "github.com/archoncloud/archon-dht/dht_permission_layers"
 	"github.com/archoncloud/archoncloud-ethereum/rpc_utils"
@@ -9,12 +16,6 @@ import (
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/pariz/gountries"
-	"math"
-	"os"
-	fp "path/filepath"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // For info only
@@ -22,15 +23,15 @@ var StartTime time.Time
 var PortsUsed []int
 
 const (
-	StorageRoot     = "www"
-	ShardsFolder    = "shards"
-	HashesFolder    = "hashes"
-	LogFolder		= "log"
-	ActivityFolder	= "activity"
+	StorageRoot    = "www"
+	ShardsFolder   = "shards"
+	HashesFolder   = "hashes"
+	LogFolder      = "log"
+	ActivityFolder = "activity"
 )
 
 // where the executable resides. Current directory is not used
-var rootFolder string;
+var rootFolder string
 
 func RelativeToRoot(absPath string) string {
 	return strings.TrimPrefix(absPath, rootFolder)
@@ -76,20 +77,37 @@ func InHashesFolder(paths ...string) string {
 	return combined
 }
 
+func AccessedPath(acl UploadAccessControlLevel, spath string) string {
+	var ret string
+	switch acl {
+	case Priv_RestrictedGroup:
+		ret = fp.Join(SPriv_RestrictedGroup, spath)
+		break
+	case Public:
+		ret = fp.Join(SPublic, spath)
+		break
+	default:
+		ret = fp.Join(SPriv_UploaderOnly, spath)
+		break
+	}
+	return ret
+}
+
 // StoredFilePath returns the path where the file is stored on the server
 // If shardIndex is negative, this is a whole file
-func StoredFilePath(a *ArchonUrl, shardIndex int) string {
+func StoredFilePath(a *ArchonUrl, acl UploadAccessControlLevel, shardIndex int) string {
 	spath := a.ShardPath(shardIndex)
+	accessedPath := AccessedPath(acl, spath)
 	if a.IsHash() {
 		// hash URL
-		return InHashesFolder(spath)
+		return InHashesFolder(accessedPath)
 	}
-	return InShardsFolder(spath)
+	return InShardsFolder(accessedPath)
 }
 
 // Make sure root subfolders exist
 func makeFolders() {
-	folders := []string{GetShardsFolder(),GetHashesFolder(),GetActivityFolder()}
+	folders := []string{GetShardsFolder(), GetHashesFolder(), GetActivityFolder()}
 	err := MakeFolders(folders)
 	Abort(err)
 }
@@ -102,9 +120,12 @@ var SPAccount struct {
 
 func GetAccount(accT interfaces.AccountType) interfaces.IAccount {
 	switch accT {
-	case interfaces.EthAccountType: return SPAccount.Eth
-	case interfaces.NeoAccountType: return SPAccount.Neo
-	default: return nil
+	case interfaces.EthAccountType:
+		return SPAccount.Eth
+	case interfaces.NeoAccountType:
+		return SPAccount.Neo
+	default:
+		return nil
 	}
 }
 
@@ -119,7 +140,7 @@ func SetupAccountAndDht() {
 	Abort(err)
 	country, _ := gountries.New().FindCountryByAlpha(regInfo.CountryA3)
 	apiPorts := ApiPorts(conf)
-	urls := Urls{Host:conf.Host, HttpPort:strconv.Itoa(apiPorts[0])}
+	urls := Urls{Host: conf.Host, HttpPort: strconv.Itoa(apiPorts[0])}
 	if len(apiPorts) > 1 {
 		urls.HttpsPort = strconv.Itoa(apiPorts[1])
 	}
@@ -162,19 +183,19 @@ func SetupAccountAndDht() {
 		SPAccount.Neo = acc
 	}
 
-	dhtPort := apiPorts[0]+3
+	dhtPort := apiPorts[0] + 3
 	publicDht := dht.DHTConnectionConfig{
-		RandomInt64(0, math.MaxInt64),	// Seed
-		true,                          		// Global
-		false,                      	// IAmBootstrap
-		true,               	// OptInToNetworking
-		country.Codes,             	// SelfReportedCountryCode
+		RandomInt64(0, math.MaxInt64), // Seed
+		true,                          // Global
+		false,                         // IAmBootstrap
+		true,                          // OptInToNetworking
+		country.Codes,                 // SelfReportedCountryCode
 		dhtp.NonPermissioned{},
-		urls.String(),               			// Url
+		urls.String(), // Url
 		multiAddrString + strconv.Itoa(dhtPort),
 		conf.BootstrapPeers,
 	}
-	PortsUsed = append(PortsUsed,dhtPort)
+	PortsUsed = append(PortsUsed, dhtPort)
 	dhtPort++
 	dhtConf := []dht.DHTConnectionConfig{publicDht}
 
@@ -196,7 +217,7 @@ func SetupAccountAndDht() {
 			conf.EthBootstrapPeers,
 		}
 		dhtConf = append(dhtConf, ethDht)
-		PortsUsed = append(PortsUsed,dhtPort)
+		PortsUsed = append(PortsUsed, dhtPort)
 		dhtPort++
 		checkRegistration(SPAccount.Eth, regInfo)
 		LogInfo.Printf("Eth account initialized. Address: %s", SPAccount.Eth.AddressString())
@@ -221,7 +242,7 @@ func SetupAccountAndDht() {
 			conf.NeoBootstrapPeers,
 		}
 		dhtConf = append(dhtConf, neoDht)
-		PortsUsed = append(PortsUsed,dhtPort)
+		PortsUsed = append(PortsUsed, dhtPort)
 		dhtPort++
 		checkRegistration(SPAccount.Neo, regInfo)
 		LogInfo.Printf("Neo account initialized. Address: %s", SPAccount.Neo.AddressString())
@@ -232,11 +253,11 @@ func SetupAccountAndDht() {
 	}
 	d, err := dht.Init(dhtConf, dhtPort)
 	Abort(err)
-	PortsUsed = append(PortsUsed,dhtPort)
+	PortsUsed = append(PortsUsed, dhtPort)
 	dhtInstance = d
 
 	if isInfoCmd {
-		time.Sleep(5*time.Second)	//TODO: should not need this
+		time.Sleep(5 * time.Second) //TODO: should not need this
 		showInfo()
 		os.Exit(0)
 	}
@@ -253,12 +274,12 @@ func checkRegistration(acc interfaces.IAccount, regInfo *interfaces.Registration
 		if isRegistered {
 			// First unregister
 			LogInfo.Printf("Unregistering before registering (%s)\n", acc.BlockchainName())
-			unregisterSp(acc,true)
+			unregisterSp(acc, true)
 		}
-		resisterSp(acc,regInfo)
+		resisterSp(acc, regInfo)
 	} else if !isRegistered {
-		if inBatchMode || Yes("This account is not registered on " + acc.BlockchainName() + ". Do you want to register") {
-			resisterSp(acc,regInfo)
+		if inBatchMode || Yes("This account is not registered on "+acc.BlockchainName()+". Do you want to register") {
+			resisterSp(acc, regInfo)
 		} else {
 			os.Exit(0)
 		}
