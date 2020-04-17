@@ -21,15 +21,15 @@ import (
 var isUpload, isDownload bool
 
 type Configuration struct {
-	WalletPath          string                          `json:"wallet_path"`
-	PreferHttp          bool                            `json:"http"`
-	Overwrite           bool                            `json:"overwrite"`
-	Encoding            string                          `json:"encoding"`
-	HashUrl             bool                            `json:"hashUrl"`
-	ReedSolomonRequired int                             `json:"rs_required"`
-	ReedSolomonTotal    int                             `json:"rs_total"`
-	AccessControlLevel  upload.UploadAccessControlLevel `json:"access_control_level"`
-	DownloadDir         string                          `json:"download_dir"`
+	WalletPath          string                   `json:"wallet_path"`
+	PreferHttp          bool                     `json:"http"`
+	Overwrite           bool                     `json:"overwrite"`
+	Encoding            string                   `json:"encoding"`
+	HashUrl             bool                     `json:"hashUrl"`
+	ReedSolomonRequired int                      `json:"rs_required"`
+	ReedSolomonTotal    int                      `json:"rs_total"`
+	AccessControlLevel  UploadAccessControlLevel `json:"access_control_level"`
+	DownloadDir         string                   `json:"download_dir"`
 	// The following can only be edited manually
 	EthRpcUrls []string `json:"eth_rpc_urls"`
 	NeoRpcUrls []string `json:"neo_rpc_urls"`
@@ -57,7 +57,7 @@ func newConfiguration() *Configuration {
 		false,
 		3,
 		8,
-		upload.Priv_UploaderOnly,
+		Priv_UploaderOnly,
 		"",
 		nil,
 		neo.RpcUrls(),
@@ -113,11 +113,11 @@ func (x *versionCommand) Execute(args []string) error {
 
 func main() {
 	var options struct {
-		PreferHttp         *bool                            `long:"http" description:"Prefer connecting over HTTP"`
-		Overwrite          *bool                            `short:"o" long:"overwrite" description:"Overwrite existing file"` // default false
-		AccessControlLevel *upload.UploadAccessControlLevel `short:"a" long:"accesscontrollevel" description:"file access levels: 0->UploaderOnly, 1->PrivateRestrictedGroup, 2->Public. Default is 0"`
-		Wallet             string                           `long:"wallet" description:"Path to Ethereum or Neo wallet file"`
-		PasswordFile       *string                          `long:"passwordFile" description:"Path to the password file for wallet.\nCan be relative if in executable folder\nIf set, will run in batch mode"`
+		PreferHttp         *bool                     `long:"http" description:"Prefer connecting over HTTP"`
+		Overwrite          *bool                     `short:"o" long:"overwrite" description:"Overwrite existing file"` // default false
+		AccessControlLevel *UploadAccessControlLevel `short:"a" long:"accesscontrollevel" description:"file access levels: 0->UploaderOnly, 1->PrivateRestrictedGroup, 2->Public. Default is 0"`
+		Wallet             string                    `long:"wallet" description:"Path to Ethereum or Neo wallet file"`
+		PasswordFile       *string                   `long:"passwordFile" description:"Path to the password file for wallet.\nCan be relative if in executable folder\nIf set, will run in batch mode"`
 		UploadGroup        struct {
 			File     string  `short:"f" long:"file" description:"Path of file to upload"`
 			Encoding *string `short:"e" long:"encoding" choice:"none" choice:"mxor" choice:"RSa" choice:"RSb" description:"How the file is stored"`

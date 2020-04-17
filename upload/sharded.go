@@ -2,24 +2,25 @@ package upload
 
 import (
 	"fmt"
+	"io"
+	"mime/multipart"
+	"os"
+	"strings"
+
 	"github.com/archoncloud/archoncloud-go/account"
 	. "github.com/archoncloud/archoncloud-go/common"
 	ifs "github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/archoncloud/archoncloud-go/shards"
 	"github.com/pkg/errors"
-	"io"
-	"mime/multipart"
-	"os"
-	"strings"
 )
 
 // the process of getting one shard from spAddress
 type shardUpload struct {
-	shards		*shards.ShardsContainer
-	shardIndex	int
-	spProfile	*SpProfile
-	uploadUrl	string
-	err 		error
+	shards     *shards.ShardsContainer
+	shardIndex int
+	spProfile  *SpProfile
+	uploadUrl  string
+	err        error
 }
 
 func (su *shardUpload) PickUrl(preferHttp bool) {
@@ -32,7 +33,9 @@ func (su *shardUpload) GetShard() *shards.Shard {
 
 func (u *Request) generateFileContainer() (fileContainer *shards.FileContainer, err error) {
 	file, err := os.Open(u.FilePath)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	defer file.Close()
 
 	var s *shards.ShardsContainer
@@ -40,9 +43,9 @@ func (u *Request) generateFileContainer() (fileContainer *shards.FileContainer, 
 	case EncodingMxor:
 		s = shards.NewBOMxor()
 	case EncodingRSa:
-		s = shards.NewAors(u.NumTotal,u.NumRequired)
+		s = shards.NewAors(u.NumTotal, u.NumRequired)
 	case EncodingRSb:
-		s = shards.NewBors(u.NumTotal,u.NumRequired)
+		s = shards.NewBors(u.NumTotal, u.NumRequired)
 	default:
 		err = fmt.Errorf("unknown encoding: %s", u.Encoding)
 		return
@@ -54,11 +57,14 @@ func (u *Request) generateFileContainer() (fileContainer *shards.FileContainer, 
 // shardedUpload does the upload of shards
 func (u *Request) shardedUpload(a *ArchonUrl, sps StorageProviders) (price int64, err error) {
 	fileContainer, err := u.generateFileContainer()
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	if a.IsHash() {
 		a.Path = fileContainer.Shards.GetOriginDataHashString()
 	}
+	fileContainer.AccessControlLevel = u.AccessControlLevel
 	// New proposed upload transaction
 	var txIds map[string]string
 	switch u.UploaderAccount.GetAccountType() {
@@ -78,7 +84,9 @@ func (u *Request) shardedUpload(a *ArchonUrl, sps StorageProviders) (price int64
 	case ifs.NeoAccountType:
 		neoAcc := u.UploaderAccount.(*account.NeoAccount)
 		txIds, price, err = neoAcc.ProposeUpload(fileContainer, fileContainer.Shards, a, sps, u.MaxPayment)
-		if err != nil {return}
+		if err != nil {
+			return
+		}
 		err = u.uploadNeededShards(txIds, fileContainer.Shards, sps)
 		if err == nil {
 			fmt.Println("Upload transaction IDs:")
@@ -93,7 +101,7 @@ func (u *Request) shardedUpload(a *ArchonUrl, sps StorageProviders) (price int64
 }
 
 // uploadNeededShards uploads the shards in parallel to sps
-func  (u *Request) uploadNeededShards(txIds map[string]string, s *shards.ShardsContainer, sps StorageProviders) (err error) {
+func (u *Request) uploadNeededShards(txIds map[string]string, s *shards.ShardsContainer, sps StorageProviders) (err error) {
 	n := s.GetNumShards()
 	shardsToDo := make([]int, n)
 	for i := 0; i < s.GetNumShards(); i++ {
@@ -101,7 +109,7 @@ func  (u *Request) uploadNeededShards(txIds map[string]string, s *shards.ShardsC
 	}
 	// All shards have same length
 	shardLen := s.GetShard(0).Len()
-	totalLen := uint64(shardLen)*uint64(n)
+	totalLen := uint64(shardLen) * uint64(n)
 	fmt.Printf("Starting upload of %s\n", NumBytesDisplayString(totalLen))
 	bp := NewByteProgress("Uploading", totalLen)
 	startingUploadMessage(sps)
@@ -126,11 +134,11 @@ func  (u *Request) uploadNeededShards(txIds map[string]string, s *shards.ShardsC
 			resp := <-uchan
 			if resp.err != nil {
 				errMsg := resp.err.Error()
-				errMsg = strings.TrimRight(errMsg,"\n")
-				errMsg = strings.TrimLeft(errMsg,"Error: ")
+				errMsg = strings.TrimRight(errMsg, "\n")
+				errMsg = strings.TrimLeft(errMsg, "Error: ")
 				resultMessages.Add(fmt.Sprintf("Error %s: %s", resp.spProfile.Urls.Host, errMsg))
 				// Don't try this SP again since it has failed
-				sps.Remove(func(sp *SpProfile) bool {return sp.Address == resp.spProfile.Address})
+				sps.Remove(func(sp *SpProfile) bool { return sp.Address == resp.spProfile.Address })
 			} else {
 				// This shard is done, yay!
 				resultMessages.Add(fmt.Sprintf("Shard %d uploaded to %s", resp.shardIndex, resp.uploadUrl))
@@ -142,16 +150,18 @@ func  (u *Request) uploadNeededShards(txIds map[string]string, s *shards.ShardsC
 	return
 }
 
-func getShardUploads(s *shards.ShardsContainer, shardsToDo []int, sps StorageProviders, maxAtOnce int ) []*shardUpload {
+func getShardUploads(s *shards.ShardsContainer, shardsToDo []int, sps StorageProviders, maxAtOnce int) []*shardUpload {
 	n := Min(len(shardsToDo), maxAtOnce)
 	uploads := make([]*shardUpload, n)
 	numSps := sps.Num()
 	for ix, shardIndex := range shardsToDo {
-		if ix >= n {break}
+		if ix >= n {
+			break
+		}
 		uploads[ix] = &shardUpload{
-			shards:		s,
+			shards:     s,
 			shardIndex: shardIndex,
-			spProfile:  sps.Get(ix%numSps),
+			spProfile:  sps.Get(ix % numSps),
 			err:        nil,
 		}
 	}
@@ -169,14 +179,16 @@ func (u *Request) postShard(su *shardUpload, txid string, bp *ByteProgress, ucha
 		defer w.Close()
 		defer m.Close()
 		part, writeErr := m.CreateFormFile(UploadFileKey, u.FilePath)
-		if writeErr != nil {return}
+		if writeErr != nil {
+			return
+		}
 
 		shard := su.GetShard()
 		writeErr = shard.WriteShardContainer(part, u.UploaderAccount)
 	}()
 
 	success := false
-	errorList := make([]error,0)
+	errorList := make([]error, 0)
 	usedUrls := make(map[string]bool)
 	// Can try both http and https
 	for k := 0; k < 2; k++ {

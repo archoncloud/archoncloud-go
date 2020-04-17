@@ -23,26 +23,18 @@ const (
 	EncodingRSb  = "RSb" // browser-optimized
 )
 
-type UploadAccessControlLevel uint8
-
-const (
-	Priv_UploaderOnly UploadAccessControlLevel = iota
-	Priv_RestrictedGroup
-	Public
-)
-
 type Request struct {
-	FilePath                 string
-	CloudDir                 string
-	Encoding                 string
-	NumTotal                 int // needed only when EncodingRSx
-	NumRequired              int // needed only when EncodingRSx
-	Overwrite                bool
-	UploadAccessControlLevel UploadAccessControlLevel
-	HashUrl                  bool // user wants a hash URL, not a named URL
-	PreferHttp               bool // user prefers using http, if available
-	UploaderAccount          interfaces.IAccount
-	Batch                    bool // operate in batch mode - no user interaction
+	FilePath           string
+	CloudDir           string
+	Encoding           string
+	NumTotal           int // needed only when EncodingRSx
+	NumRequired        int // needed only when EncodingRSx
+	Overwrite          bool
+	AccessControlLevel UploadAccessControlLevel
+	HashUrl            bool // user wants a hash URL, not a named URL
+	PreferHttp         bool // user prefers using http, if available
+	UploaderAccount    interfaces.IAccount
+	Batch              bool // operate in batch mode - no user interaction
 	// If 0, any payment is valid, otherwise in units of blockchain
 	// Eth: Wei, Neo: Gas* (10**8)
 	MaxPayment int64
