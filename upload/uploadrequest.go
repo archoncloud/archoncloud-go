@@ -3,39 +3,49 @@ package upload
 
 import (
 	"fmt"
-	. "github.com/archoncloud/archoncloud-go/common"
-	"github.com/archoncloud/archoncloud-go/interfaces"
-	"github.com/archoncloud/archoncloud-go/shards"
-	"github.com/pkg/errors"
 	"net/url"
 	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+
+	. "github.com/archoncloud/archoncloud-go/common"
+	"github.com/archoncloud/archoncloud-go/interfaces"
+	"github.com/archoncloud/archoncloud-go/shards"
+	"github.com/pkg/errors"
 )
 
 const (
 	EncodingNone = "none"
 	EncodingMxor = "mxor"
-	EncodingRSa = "RSa"		// archive-optimized
-	EncodingRSb = "RSb"		// browser-optimized
+	EncodingRSa  = "RSa" // archive-optimized
+	EncodingRSb  = "RSb" // browser-optimized
+)
+
+type UploadAccessControlLevel uint8
+
+const (
+	Priv_UploaderOnly UploadAccessControlLevel = iota
+	Priv_RestrictedGroup
+	Public
 )
 
 type Request struct {
-	FilePath        string
-	CloudDir        string
-	Encoding        string
-	NumTotal        int		// needed only when EncodingRSx
-	NumRequired     int		// needed only when EncodingRSx
-	Overwrite       bool
-	HashUrl         bool	// user wants a hash URL, not a named URL
-	PreferHttp      bool	// user prefers using http, if available
-	UploaderAccount interfaces.IAccount
-	Batch           bool	// operate in batch mode - no user interaction
+	FilePath                 string
+	CloudDir                 string
+	Encoding                 string
+	NumTotal                 int // needed only when EncodingRSx
+	NumRequired              int // needed only when EncodingRSx
+	Overwrite                bool
+	UploadAccessControlLevel UploadAccessControlLevel
+	HashUrl                  bool // user wants a hash URL, not a named URL
+	PreferHttp               bool // user prefers using http, if available
+	UploaderAccount          interfaces.IAccount
+	Batch                    bool // operate in batch mode - no user interaction
 	// If 0, any payment is valid, otherwise in units of blockchain
 	// Eth: Wei, Neo: Gas* (10**8)
-	MaxPayment		int64
+	MaxPayment int64
 }
 
 var batchMode bool
@@ -48,7 +58,7 @@ type Messages struct {
 
 func (m *Messages) Add(message string) {
 	m.mux.Lock()
-	m.buf = append(m.buf,message)
+	m.buf = append(m.buf, message)
 	m.mux.Unlock()
 }
 
@@ -66,7 +76,7 @@ func (u *Request) IsValid() (err error) {
 		err = fmt.Errorf("file %q does not exist", u.FilePath)
 	} else if u.UploaderAccount == nil {
 		err = errors.New("missing uploader account")
-	} else if u.Encoding != EncodingMxor &&  u.NumTotal < u.NumRequired {
+	} else if u.Encoding != EncodingMxor && u.NumTotal < u.NumRequired {
 		err = errors.New("total shards cannot be smaller than required shards")
 	}
 	return
@@ -78,7 +88,9 @@ func (u *Request) IsValid() (err error) {
 func (u *Request) Upload() (downloadUrl string, price int64, err error) {
 	batchMode = u.Batch
 	err = u.IsValid()
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	numRequired := 0
 	numTotal := 0
@@ -98,7 +110,9 @@ func (u *Request) Upload() (downloadUrl string, price int64, err error) {
 	} else {
 		sps, err = GetUploadSps(numTotal, u.UploaderAccount)
 	}
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	if sps.Num() == 0 {
 		err = fmt.Errorf("could not find any storage providers")
@@ -106,14 +120,14 @@ func (u *Request) Upload() (downloadUrl string, price int64, err error) {
 	}
 	a := &ArchonUrl{
 		Permission: u.UploaderAccount.Permission(),
-		Needed:		numRequired,
-		Total:		numTotal,
+		Needed:     numRequired,
+		Total:      numTotal,
 	}
 	if !u.HashUrl {
 		cloudPath := path.Join(u.CloudDir, filepath.Base(u.FilePath))
 		userName, _ := u.UploaderAccount.GetUserName()
 		a.Username = userName
-		a.Path = strings.ReplaceAll(cloudPath,"\\", "/")
+		a.Path = strings.ReplaceAll(cloudPath, "\\", "/")
 	}
 	if u.Encoding != EncodingNone {
 		// Shards
