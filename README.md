@@ -60,8 +60,9 @@ These are:
 On first run, a `registration.txt` file is also created with default entries.  
 This will be used to register with the blockchain. Fill in the empty items with a text editor.  
 The most important are the min ask values `GasPerGByte` and `WeiPerByte`. These will be used by the network when picking storage providers to upload to.  
-Note that for Neo, the pay is in *CGAS*, not *GAS*, but *CGAS* is convertible one to one to *GAS*.
-Once registered, you can re-register at a later time with different values, if needed.
+Note that for Neo, the pay is in *CGAS*, not *GAS*, but *CGAS* is convertible one-to-one to *GAS*.
+Once registered, you can re-register at a later time with different values, if needed.  
+The client will decide which storage providers to upload to based on the min ask, trying to minimize the cost.
 
 ## Client
 
