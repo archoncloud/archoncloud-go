@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
+
 	. "github.com/archoncloud/archoncloud-go/common"
 	"github.com/archoncloud/archoncloud-go/interfaces"
-	"io"
 )
 
 const FileContainerCurrentVersion = 0
@@ -14,9 +15,9 @@ const FileContainerCurrentVersion = 0
 type FileContainerType uint8
 
 const (
-	NoContainer FileContainerType = iota	// for non-container upload/download (raw file)
+	NoContainer FileContainerType = iota // for non-container upload/download (raw file)
 	BrowserOptimized
-	ArchiveOptimized	// using Infectious RS
+	ArchiveOptimized // using Infectious RS
 )
 
 type EncryptionType uint8
@@ -30,21 +31,24 @@ const CRC32Len = 4
 const RedundacyLen = 4
 
 type FileContainer struct {
-	Version         uint8 // currently 0
-	Type            FileContainerType
-	EncryptionType  EncryptionType
-	CompressionType uint8	// 0=no compression
-	Size            int64	// bytes
-	Signature       []byte
-	Shards          *ShardsContainer
-	Hash            []byte
+	Version            uint8 // currently 0
+	Type               FileContainerType
+	EncryptionType     EncryptionType
+	CompressionType    uint8 // 0=no compression
+	AccessControlLevel UploadAccessControlLevel
+	Size               int64 // bytes
+	Signature          []byte
+	Shards             *ShardsContainer
+	Hash               []byte
 }
 
 func (fct FileContainerType) HdrLen() int {
 	const fileContainerCommonHdrLen = 4
 	switch fct {
-	case BrowserOptimized: return fileContainerCommonHdrLen
-	case ArchiveOptimized: return fileContainerCommonHdrLen+1+CRC32Len	// parity+CRC32
+	case BrowserOptimized:
+		return fileContainerCommonHdrLen
+	case ArchiveOptimized:
+		return fileContainerCommonHdrLen + 1 + CRC32Len // parity+CRC32
 	}
 	return 0
 }
@@ -52,8 +56,10 @@ func (fct FileContainerType) HdrLen() int {
 func (fct FileContainerType) TaiLen() int {
 	const fileContainerCommonHdrLen = 4
 	switch fct {
-	case BrowserOptimized: return RedundacyLen+ ArchonSignatureLen
-	case ArchiveOptimized: return CRC32Len+ ArchonSignatureLen
+	case BrowserOptimized:
+		return RedundacyLen + ArchonSignatureLen
+	case ArchiveOptimized:
+		return CRC32Len + ArchonSignatureLen
 	}
 	return 0
 }
@@ -62,11 +68,11 @@ func (fct FileContainerType) PayLoadEnd(fcLen int64) int64 {
 	tail := fct.TaiLen()
 	switch fct {
 	case BrowserOptimized:
-		return fcLen-int64(tail)
+		return fcLen - int64(tail)
 	case ArchiveOptimized:
 		payloadAndParity := fcLen - int64(fct.HdrLen()+tail)
-		parityLen := DivideRoundUp( uint64(payloadAndParity), 26	)// 25-26 parity
-		return fcLen-int64(parityLen) -int64(tail)
+		parityLen := DivideRoundUp(uint64(payloadAndParity), 26) // 25-26 parity
+		return fcLen - int64(parityLen) - int64(tail)
 	}
 	return 0
 }
@@ -78,14 +84,16 @@ func NewFileContainer(s *ShardsContainer, r io.Reader, account interfaces.IAccou
 		fct = ArchiveOptimized
 	}
 	f := FileContainer{
-		Version:		FileContainerCurrentVersion,
-		Type:			fct,
-		EncryptionType:	NoEncryption,
-		CompressionType:0,
-		Shards:			s,
+		Version:         FileContainerCurrentVersion,
+		Type:            fct,
+		EncryptionType:  NoEncryption,
+		CompressionType: 0,
+		Shards:          s,
 	}
 	fileContainerBytes, err := f.CreateContainerBytes(r, account)
-	if err != nil {return nil, err}
+	if err != nil {
+		return nil, err
+	}
 
 	s.FileContainerHash = f.Hash
 	// This encodes the individual shards
@@ -98,9 +106,11 @@ func (f *FileContainer) CreateContainerBytes(r io.Reader, uploaderAccount interf
 	fileContainerBytes = bytes.Buffer{}
 	hashWr := NewHashingWriter(&fileContainerBytes)
 	hdr := []byte{byte(f.Version), byte(f.Type), byte(f.EncryptionType), byte(f.CompressionType)}
-	var numBytes int64 = 0;
+	var numBytes int64 = 0
 	n, err := hashWr.Write(hdr)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	numBytes += int64(n)
 
 	if f.Type == ArchiveOptimized {
@@ -115,7 +125,9 @@ func (f *FileContainer) CreateContainerBytes(r io.Reader, uploaderAccount interf
 
 	// Payload
 	nc, err := io.Copy(hashWr, r)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	numBytes += nc
 
 	if f.Type == ArchiveOptimized {
@@ -128,14 +140,18 @@ func (f *FileContainer) CreateContainerBytes(r io.Reader, uploaderAccount interf
 		// Version,	Type, EncryptionType, CompressionType and right most 4 bytes of
 		// the entire container size (container size % 2^32), big-endian
 		Size := numBytes + RedundacyLen + ArchonSignatureLen
-		redundancyBytes := [8]byte{ byte(f.Version), byte(f.Type), byte(f.EncryptionType), byte(f.CompressionType)}
-		binary.BigEndian.PutUint32(redundancyBytes[4:8], uint32(Size & 0xFFFF))
+		redundancyBytes := [8]byte{byte(f.Version), byte(f.Type), byte(f.EncryptionType), byte(f.CompressionType)}
+		binary.BigEndian.PutUint32(redundancyBytes[4:8], uint32(Size&0xFFFF))
 		_, err = hashWr.Write(GetArchonHash(redundancyBytes[:])[:RedundacyLen])
-		if err != nil {return}
+		if err != nil {
+			return
+		}
 	}
 
 	sig, err := uploaderAccount.Sign(hashWr.GetHash())
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	f.Signature = sig
 
@@ -149,7 +165,9 @@ func (f *FileContainer) CreateContainerBytes(r io.Reader, uploaderAccount interf
 func (s *ShardsContainer) GetOriginalDataFromContainer(container []byte) (io.Reader, error) {
 	// Note: container may include trailing zeros that are to be ignored
 	hdr, err := s.GetSampleShardHdr()
-	if err != nil {return nil,err}
+	if err != nil {
+		return nil, err
+	}
 
 	containerLen := hdr.GetFileContainerLen()
 	if len(container) < int(containerLen) {
@@ -176,6 +194,6 @@ func (s *ShardsContainer) GetOriginalDataFromContainer(container []byte) (io.Rea
 	}
 
 	// TODO: verification - signature, redundancy, CRC32
-	r := bytes.NewReader(container[fct.HdrLen() : fct.PayLoadEnd(containerLen)]);
+	r := bytes.NewReader(container[fct.HdrLen():fct.PayLoadEnd(containerLen)])
 	return r, nil
 }

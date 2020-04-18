@@ -4,6 +4,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+
 	"github.com/archoncloud/archoncloud-ethereum/rpc_utils"
 	"github.com/archoncloud/archoncloud-go/account"
 	"github.com/archoncloud/archoncloud-go/blockchainAPI/neo"
@@ -12,37 +16,35 @@ import (
 	"github.com/archoncloud/archoncloud-go/interfaces"
 	"github.com/archoncloud/archoncloud-go/upload"
 	"github.com/jessevdk/go-flags"
-	"io/ioutil"
-	"os"
-	"strings"
 )
 
 var isUpload, isDownload bool
 
 type Configuration struct {
-	WalletPath          string `json:"wallet_path"`
-	PreferHttp          bool   `json:"http"`
-	Overwrite           bool   `json:"overwrite"`
-	Encoding            string `json:"encoding"`
-	HashUrl             bool   `json:"hashUrl"`
-	ReedSolomonRequired int    `json:"rs_required"`
-	ReedSolomonTotal    int    `json:"rs_total"`
-	DownloadDir			string `json:"download_dir"`
+	WalletPath          string                   `json:"wallet_path"`
+	PreferHttp          bool                     `json:"http"`
+	Overwrite           bool                     `json:"overwrite"`
+	Encoding            string                   `json:"encoding"`
+	HashUrl             bool                     `json:"hashUrl"`
+	ReedSolomonRequired int                      `json:"rs_required"`
+	ReedSolomonTotal    int                      `json:"rs_total"`
+	AccessControlLevel  UploadAccessControlLevel `json:"access_control_level"`
+	DownloadDir         string                   `json:"download_dir"`
 	// The following can only be edited manually
-	EthRpcUrls		[]string `json:"eth_rpc_urls"`
-	NeoRpcUrls		[]string `json:"neo_rpc_urls"`
+	EthRpcUrls []string `json:"eth_rpc_urls"`
+	NeoRpcUrls []string `json:"neo_rpc_urls"`
 }
 
 func (c *Configuration) String() string {
 	s := fmt.Sprintf("wallet_path=%q, http=%v, overwrite=%v, hashUrl=%v, encoding=%s",
 		c.WalletPath, c.PreferHttp, c.Overwrite, c.HashUrl, c.Encoding)
-	if strings.HasPrefix(c.Encoding,"RS") {
+	if strings.HasPrefix(c.Encoding, "RS") {
 		s += fmt.Sprintf(", rs_required=%d, rs_total=%d", c.ReedSolomonRequired, c.ReedSolomonTotal)
 	}
 	if c.DownloadDir != "" {
 		s += fmt.Sprintf(", download_dir=%q", c.DownloadDir)
 	}
-	return s;
+	return s
 }
 
 func newConfiguration() *Configuration {
@@ -55,12 +57,13 @@ func newConfiguration() *Configuration {
 		false,
 		3,
 		8,
+		Priv_UploaderOnly,
 		"",
 		nil,
 		neo.RpcUrls(),
 	}
 	err := GetAppConfiguration(&conf)
-	if !errors.Is(err, os.ErrNotExist ) {
+	if !errors.Is(err, os.ErrNotExist) {
 		Abort(err)
 	}
 	return &conf
@@ -82,7 +85,8 @@ func (x *DownloadCommand) Execute(args []string) error {
 	return nil
 }
 
-type genEthWalletCommand struct {}
+type genEthWalletCommand struct{}
+
 func (x *genEthWalletCommand) Execute(args []string) error {
 	// Generate the wallet and return
 	account.GenerateNewWalletFile(interfaces.EthAccountType, false)
@@ -90,7 +94,8 @@ func (x *genEthWalletCommand) Execute(args []string) error {
 	return nil
 }
 
-type genNeoWalletCommand struct {}
+type genNeoWalletCommand struct{}
+
 func (x *genNeoWalletCommand) Execute(args []string) error {
 	// Generate the wallet and return
 	account.GenerateNewWalletFile(interfaces.NeoAccountType, false)
@@ -98,7 +103,8 @@ func (x *genNeoWalletCommand) Execute(args []string) error {
 	return nil
 }
 
-type versionCommand struct {}
+type versionCommand struct{}
+
 func (x *versionCommand) Execute(args []string) error {
 	fmt.Printf("V%s\n", Version)
 	os.Exit(0)
@@ -107,22 +113,23 @@ func (x *versionCommand) Execute(args []string) error {
 
 func main() {
 	var options struct {
-		PreferHttp *bool `long:"http" description:"Prefer connecting over HTTP"`
-		Overwrite *bool `short:"o" long:"overwrite" description:"Overwrite existing file"`	// default false
-		Wallet string `long:"wallet" description:"Path to Ethereum or Neo wallet file"`
-		PasswordFile *string  `long:"passwordFile" description:"Path to the password file for wallet.\nCan be relative if in executable folder\nIf set, will run in batch mode"`
-		UploadGroup struct {
-			File string `short:"f" long:"file" description:"Path of file to upload"`
+		PreferHttp         *bool                     `long:"http" description:"Prefer connecting over HTTP"`
+		Overwrite          *bool                     `short:"o" long:"overwrite" description:"Overwrite existing file"` // default false
+		AccessControlLevel *UploadAccessControlLevel `short:"a" long:"accesscontrollevel" description:"file access levels: 0->UploaderOnly, 1->PrivateRestrictedGroup, 2->Public. Default is 0"`
+		Wallet             string                    `long:"wallet" description:"Path to Ethereum or Neo wallet file"`
+		PasswordFile       *string                   `long:"passwordFile" description:"Path to the password file for wallet.\nCan be relative if in executable folder\nIf set, will run in batch mode"`
+		UploadGroup        struct {
+			File     string  `short:"f" long:"file" description:"Path of file to upload"`
 			Encoding *string `short:"e" long:"encoding" choice:"none" choice:"mxor" choice:"RSa" choice:"RSb" description:"How the file is stored"`
-			RSReq *int `long:"req" description:"Number of shards required for reconstruction (for RS... only)"`
-			RSTot *int `long:"tot" description:"Total number of shards. Must be larger than req"`
-			Type *string `short:"t" long:"type" choice:"hash" choice:"named" description:"The kind of Archon Url returned"`
+			RSReq    *int    `long:"req" description:"Number of shards required for reconstruction (for RS... only)"`
+			RSTot    *int    `long:"tot" description:"Total number of shards. Must be larger than req"`
+			Type     *string `short:"t" long:"type" choice:"hash" choice:"named" description:"The kind of Archon Url returned"`
 			CloudDir *string `long:"cloudDir" description:"the path of the folder in the cloud"`
 		} `group:"Options for upload"`
 		DownloadGroup struct {
-			Url         string `short:"u" long:"url" description:"Archon URL of the file to download"`
-			DownloadDir *string `short:"d" long:"downloadDir" description:"The folder for download"`
-			DownloadFileName string `long:"downloadName" description:"The file name, if different from the URL name"`
+			Url              string  `short:"u" long:"url" description:"Archon URL of the file to download"`
+			DownloadDir      *string `short:"d" long:"downloadDir" description:"The folder for download"`
+			DownloadFileName string  `long:"downloadName" description:"The file name, if different from the URL name"`
 		} `group:"Options for download"`
 	}
 
@@ -157,7 +164,7 @@ func main() {
 	}
 
 	if !isDownload && !isUpload {
-		InvalidArgs( "You need to specify a command")
+		InvalidArgs("You need to specify a command")
 	}
 
 	conf := newConfiguration()
@@ -174,7 +181,9 @@ func main() {
 		conf.Overwrite = *options.Overwrite
 		confChanged = true
 	}
-
+	if options.AccessControlLevel != nil && conf.AccessControlLevel != *options.AccessControlLevel {
+		conf.AccessControlLevel = *options.AccessControlLevel
+	}
 	if options.UploadGroup.Type != nil {
 		isHash := *options.UploadGroup.Type == "hash"
 		if conf.HashUrl != isHash {
@@ -210,7 +219,9 @@ func main() {
 
 	if isUpload {
 		// defaults
-		if conf.Encoding == "" {conf.Encoding = "none"}
+		if conf.Encoding == "" {
+			conf.Encoding = "none"
+		}
 
 		if options.UploadGroup.File == "" {
 			InvalidArgs("You need to specify a file")
@@ -223,6 +234,7 @@ func main() {
 			conf.ReedSolomonTotal,
 			conf.ReedSolomonRequired,
 			conf.Overwrite,
+			conf.AccessControlLevel,
 			conf.HashUrl,
 			conf.PreferHttp,
 			acc,

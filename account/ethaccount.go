@@ -36,12 +36,12 @@ type EthAccount struct {
 	address         []byte            // Ethereum ID (20 bytes)
 	privateKeyBytes []byte            // 32 bytes
 	publicKeyBytes  []byte            // 64 bytes The Ethereum public key is 65 bytes. First byte is always 4
-	keyset			*wallet.EthereumKeyset
+	keyset          *wallet.EthereumKeyset
 }
 
 const (
-	EthToWei                 = Quintillion
-	CentsToWei               = 100000000000
+	EthToWei   = Quintillion
+	CentsToWei = 100000000000
 )
 
 // --------------------- IAccount start -----------------------------------------------
@@ -178,7 +178,7 @@ func (acc *EthAccount) RegisterSP(r *ifc.RegistrationInfo) (txId string, err err
 
 func (acc *EthAccount) UnregisterSP() (err error) {
 	par := register.SPParams{
-		Wallet:         *acc.keyset,
+		Wallet: *acc.keyset,
 	}
 	txId, err := register.UnregisterSP(par)
 	if err == nil {
@@ -211,7 +211,9 @@ func (acc *EthAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 		shardSize = fc.Size
 	}
 	price, err = confirmPrice(acc, shardSize, sps, maxPayment)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	uplPar := client_utils.UploadParams{
 		Wallet:             *acc.keyset,
@@ -226,6 +228,7 @@ func (acc *EthAccount) ProposeUpload(fc *shards.FileContainer, s *shards.ShardsC
 		CompressionType:    fc.CompressionType,
 		ShardContainerType: uint8(shardContainerType),
 		ErasureCodeType:    uint8(erasureCodeType),
+		AccessControlLevel: client_utils.UploadAccessControlLevel(fc.AccessControlLevel),
 		CustomField:        0,
 		ContainerSignature: *NewArchonSignature(fc.Signature),
 		SPsToUploadTo:      sps.EthAddresses(),
@@ -254,11 +257,11 @@ func (acc *EthAccount) HundredthOfCent() int64 {
 }
 
 func (acc *EthAccount) Sign(hash []byte) (sig []byte, err error) {
-	return Sign(acc,hash)
+	return Sign(acc, hash)
 }
 
 func (acc *EthAccount) Verify(hash, signature, publicKey []byte) bool {
-	return Verify(acc,hash,signature,publicKey)
+	return Verify(acc, hash, signature, publicKey)
 }
 
 func (acc *EthAccount) GetEarnings() (int64, error) {
