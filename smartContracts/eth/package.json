@@ -1,0 +1,20 @@
+{
+  "name": "ethereum",
+  "version": "1.0.0",
+  "description": "# Deployed to Gorli Testnet at contract address 0x39fa6E321aCa203D09d0B61cD3E5A86b568EEead",
+  "main": "deployToGanache.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bignumber.js": "^9.0.0",
+    "ethers": "^4.0.37",
+    "node-int64": "^0.4.0",
+    "web3": "^1.2.1"
+  }
+}
