@@ -167,8 +167,11 @@ func SetupAccountAndDht() {
 			password = GetPassword("Ethereum", showPassword)
 		}
 		acc, err := account.NewEthAccount(DefaultToExecutable(conf.EthWalletPath), password)
-		Abort(err)
-		SPAccount.Eth = acc
+		if err == nil {
+			SPAccount.Eth = acc
+		} else {
+			LogError.Println(err.Error())
+		}
 	}
 	if conf.NeoWalletPath != "" {
 		var password string
@@ -179,8 +182,11 @@ func SetupAccountAndDht() {
 			password = GetPassword("Neo", showPassword)
 		}
 		acc, err := account.NewNeoAccount(conf.NeoWalletPath, password)
-		Abort(err)
-		SPAccount.Neo = acc
+		if err == nil {
+			SPAccount.Neo = acc
+		} else {
+			LogError.Println(err.Error())
+		}
 	}
 
 	dhtPort := apiPorts[0] + 3
