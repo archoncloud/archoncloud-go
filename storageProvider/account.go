@@ -159,13 +159,7 @@ func SetupAccountAndDht() {
 	LogInfo.Printf("Host multi address is: %s\n", multiAddrString)
 
 	if conf.EthWalletPath != "" {
-		var password string
-		if debug {
-			// To avoid having to type this
-			password = "ethTestingWallet7"
-		} else {
-			password = GetPassword("Ethereum", showPassword)
-		}
+		password := GetPassword("Ethereum", showPassword)
 		acc, err := account.NewEthAccount(DefaultToExecutable(conf.EthWalletPath), password)
 		if err == nil {
 			SPAccount.Eth = acc
@@ -174,13 +168,7 @@ func SetupAccountAndDht() {
 		}
 	}
 	if conf.NeoWalletPath != "" {
-		var password string
-		if debug {
-			// To avoid having to type this
-			password = "archon"
-		} else {
-			password = GetPassword("Neo", showPassword)
-		}
+		password := GetPassword("Neo", showPassword)
 		acc, err := account.NewNeoAccount(conf.NeoWalletPath, password)
 		if err == nil {
 			SPAccount.Neo = acc
